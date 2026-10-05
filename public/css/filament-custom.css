@@ -1,0 +1,186 @@
+/* =========================
+   1) ZEBRA + SEPARADOR + HOVER (MODO CLARO)
+   ========================= */
+html:not(.dark) .fi-ta-table tbody tr:nth-child(odd) > td,
+html:not(.dark) .filament-tables-table tbody tr:nth-child(odd) > td {
+  background-color: #ffffff !important; /* blanco */
+}
+
+html:not(.dark) .fi-ta-table tbody tr:nth-child(even) > td,
+html:not(.dark) .filament-tables-table tbody tr:nth-child(even) > td {
+  background-color: #eff6ff !important; /* azul clarito (tailwind blue-50) */
+}
+
+html:not(.dark) .fi-ta-table tbody tr > td,
+html:not(.dark) .filament-tables-table tbody tr > td {
+  border-bottom: 1px solid rgba(229,231,235,.8) !important; /* gray-200 */
+}
+
+html:not(.dark) .fi-ta-table tbody tr:hover > td,
+html:not(.dark) .filament-tables-table tbody tr:hover > td {
+  background-color: #eaf2ff !important; /* azul aún más suave en hover */
+}
+
+/* Fila seleccionada (checkbox marcado) - CLARO */
+html:not(.dark) .fi-ta-table tbody tr[aria-selected="true"] > td,
+html:not(.dark) .fi-ta-table tbody tr.fi-selected > td,
+html:not(.dark) .filament-tables-table tbody tr[aria-selected="true"] > td,
+html:not(.dark) .filament-tables-table tbody tr.is-selected > td,
+html:not(.dark) .filament-tables-table tbody tr.fi-selected > td {
+  background-color: #dbeafe !important;        /* blue-100 */
+  box-shadow: inset 0 0 0 2px #3b82f6 !important; /* blue-500 */
+}
+
+/* =========================
+   2) ZEBRA + SEPARADOR + HOVER (MODO OSCURO)
+   (por si algo faltaba, lo dejamos explícito)
+   ========================= */
+.dark .fi-ta-table tbody tr:nth-child(odd) > td,
+.dark .filament-tables-table tbody tr:nth-child(odd) > td {
+  background-color: rgba(17, 24, 39, .45) !important; /* gray-900/45 */
+}
+
+.dark .fi-ta-table tbody tr:nth-child(even) > td,
+.dark .filament-tables-table tbody tr:nth-child(even) > td {
+  background-color: rgba(31, 41, 55, .45) !important;  /* gray-800/45 */
+}
+
+.dark .fi-ta-table tbody tr > td,
+.dark .filament-tables-table tbody tr > td {
+  border-bottom: 1px solid rgba(55,65,81,.7) !important; /* gray-700 */
+}
+
+.dark .fi-ta-table tbody tr:hover > td,
+.dark .filament-tables-table tbody tr:hover > td {
+  background-color: rgba(55, 65, 81, .7) !important;   /* gray-700/70 */
+}
+
+/* Fila seleccionada (checkbox marcado) - OSCURO */
+.dark .fi-ta-table tbody tr[aria-selected="true"] > td,
+.dark .fi-ta-table tbody tr.fi-selected > td,
+.dark .filament-tables-table tbody tr[aria-selected="true"] > td,
+.dark .filament-tables-table tbody tr.is-selected > td,
+.dark .filament-tables-table tbody tr.fi-selected > td {
+  background-color: rgba(59, 130, 246, .25) !important;  /* azul translúcido */
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, .9) !important; /* borde azul */
+}
+
+/* ============================
+   CONTROLES DE INTENSIDAD
+   ============================ */
+
+/* MODO CLARO */
+:root {
+  /* ↑ Sube la saturación cambiando estos dos HEX */
+  --zebra-light-odd:  #5b77f759;  /* blanco */
+  --zebra-light-even: #ffffff;  /* más fuerte que #eff6ff (blue-50) */
+  --zebra-light-hover:#2c2c2c4f;  /* hover un poco más intenso */
+}
+
+/* MODO OSCURO */
+.dark {
+  /* ↑ Sube/baja la “fuerza” con el último número (alfa 0–1) */
+  --zebra-dark-odd:  rgba(17,24,39, .55);  /* más intenso que .45 */
+  --zebra-dark-even: rgba(61, 73, 88, 0.336);
+  --zebra-dark-hover:rgba(83, 142, 236, 0.329);
+}
+
+/* ============================
+   APLICACIÓN DE ZEBRA + HOVER
+   ============================ */
+
+/* Claro */
+html:not(.dark) .fi-ta-table tbody tr:nth-child(odd)  > td,
+html:not(.dark) .filament-tables-table tbody tr:nth-child(odd)  > td {
+  background-color: var(--zebra-light-odd) !important;
+}
+html:not(.dark) .fi-ta-table tbody tr:nth-child(even) > td,
+html:not(.dark) .filament-tables-table tbody tr:nth-child(even) > td {
+  background-color: var(--zebra-light-even) !important;
+}
+html:not(.dark) .fi-ta-table tbody tr:hover > td,
+html:not(.dark) .filament-tables-table tbody tr:hover > td {
+  background-color: var(--zebra-light-hover) !important;
+}
+
+/* Oscuro */
+.dark .fi-ta-table tbody tr:nth-child(odd)  > td,
+.dark .filament-tables-table tbody tr:nth-child(odd)  > td {
+  background-color: var(--zebra-dark-odd) !important;
+}
+.dark .fi-ta-table tbody tr:nth-child(even) > td,
+.dark .filament-tables-table tbody tr:nth-child(even) > td {
+  background-color: var(--zebra-dark-even) !important;
+}
+.dark .fi-ta-table tbody tr:hover > td,
+.dark .filament-tables-table tbody tr:hover > td {
+  background-color: var(--zebra-dark-hover) !important;
+}
+
+/* Columna de checkboxes fija a la izquierda */
+.fi-ta-table th:first-child,
+.fi-ta-table td:first-child,
+.filament-tables-table th:first-child,
+.filament-tables-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 10; /* asegura que quede encima */
+    background-color: inherit; /* respeta zebra */
+}
+/* Fila seleccionada (checkbox marcado) */
+.fi-ta-table tbody tr[aria-selected="true"] td,
+.filament-tables-table tbody tr[aria-selected="true"] td {
+    background-color: #dbeafe !important; /* azul claro (modo claro) */
+}
+
+/* Oscuro */
+.dark .fi-ta-table tbody tr[aria-selected="true"] td,
+.dark .filament-tables-table tbody tr[aria-selected="true"] td {
+    background-color: rgba(59, 130, 246, 0.35) !important; /* azul traslúcido */
+}
+/* === 1) Asegura el contexto para sticky (importante) === */
+.fi-ta-table,
+.filament-tables-table {
+  position: relative; /* sticky usará este contenedor de referencia */
+}
+
+/* === 2) Columna COMPLETA de checkboxes sticky (thead + tbody) === */
+.fi-ta-table thead > tr > th:first-child,
+.fi-ta-table tbody > tr > td:first-child,
+.filament-tables-table thead > tr > th:first-child,
+.filament-tables-table tbody > tr > td:first-child {
+  position: sticky;
+  left: 0;                /* pegado al borde izquierdo */
+  z-index: 40;            /* por encima de otras celdas */
+  background-color: inherit !important; /* respeta zebra/selección */
+  box-shadow: 1px 0 0 rgba(229,231,235,.9); /* línea divisoria a la derecha */
+}
+.dark .fi-ta-table thead > tr > th:first-child,
+.dark .fi-ta-table tbody > tr > td:first-child,
+.dark .filament-tables-table thead > tr > th:first-child,
+.dark .filament-tables-table tbody > tr > td:first-child {
+  box-shadow: 1px 0 0 rgba(55,65,81,.65);
+}
+
+/* === 2b) (Cobertura extra por si Filament usa clases específicas) === */
+th.fi-ta-checkbox-cell,
+td.fi-ta-checkbox-cell,
+th.filament-tables-header-cell--checkbox,
+td.filament-tables-checkbox-cell {
+  position: sticky;
+  left: 0;
+  z-index: 40;
+  background-color: inherit !important;
+}
+
+/* === 3) Resaltar FILA cuando el checkbox está seleccionado === */
+.fi-ta-table tbody tr[aria-selected="true"] > td,
+.filament-tables-table tbody tr[aria-selected="true"] > td {
+  background-color: #dbeafe !important;            /* modo claro */
+  box-shadow: inset 0 0 0 2px #3b82f6 !important;  /* borde azul */
+}
+.dark .fi-ta-table tbody tr[aria-selected="true"] > td,
+.dark .filament-tables-table tbody tr[aria-selected="true"] > td {
+  background-color: rgba(59,130,246,.35) !important;    /* modo oscuro */
+  box-shadow: inset 0 0 0 2px rgba(59,130,246,.9) !important;
+}
