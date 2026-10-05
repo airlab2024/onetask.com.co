@@ -1,4 +1,4 @@
-# ONETASK · AIRLAB
+# ONETASK
 
 Código y correcciones para validación en un entorno de pruebas.
 
