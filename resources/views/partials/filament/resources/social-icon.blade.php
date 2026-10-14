@@ -1,6 +1,6 @@
 <div class="inline-flex items-center space-x-2 rtl:space-x-reverse px-4">
     <div class="w-full flex items-center gap-2">
-        @php($socials = $getState())
+        @php($socials = $getRecord()->socials)
         @foreach($socials as $social)
             @switch($social->provider)
                 @case('google')
