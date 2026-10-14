@@ -1,0 +1,12 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Only Laravel's public directory may be served when this project is nested
+    # below another site's document root.
+    RewriteRule ^(?!public(?:/|$)) - [F,L]
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
