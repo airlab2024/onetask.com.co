@@ -62,12 +62,7 @@ class Task extends Model implements HasMedia
 
     public static function generateTaskShortCode()
     {
-        $date = now()->format('Ymd');
-        $prefix = "Ticket-{$date}-";
-        $last = self::withTrashed()->where('task_short_code', 'like', $prefix . '%')
-            ->pluck('task_short_code')->map(fn ($code) => (int) substr($code, strlen($prefix)))->max();
-        $count = ($last ?? 0) + 1;
-        return "Ticket-{$date}-{$count}";
+        return \App\Support\TaskCodeGenerator::preview();
     }
 
     protected static function booted()
@@ -75,7 +70,7 @@ class Task extends Model implements HasMedia
         static::creating(function ($task) {
 
             // Generar el código de tarea
-            $task->task_short_code = self::generateTaskShortCode();
+            $task->task_short_code = \App\Support\TaskCodeGenerator::reserve();
 
             // Asignar el usuario que crea la tarea
             $task->creado_por = auth()->id();

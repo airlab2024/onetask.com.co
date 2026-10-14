@@ -54,6 +54,10 @@ class TaskFiles
             return null;
         }
         $candidates = [$path];
+        if (str_starts_with($path, 'storage/')) {
+            // Some historic records include the public URL prefix in a disk path.
+            $candidates = [substr($path, strlen('storage/'))];
+        }
         if (!str_contains($path, '/')) {
             $candidates = array_map(fn ($directory) => $directory . '/' . $path, self::FIELDS[$field]);
         }
@@ -85,6 +89,33 @@ class TaskFiles
     public static function url(Task $task, string $field, string $path): string
     {
         return route('tasks.files', ['task' => $task->id, 'field' => $field, 'path' => $path]);
+    }
+
+    public static function canPreview(string $mime, string $absolute): bool
+    {
+        if (in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true)) {
+            return true;
+        }
+        if ($mime !== 'application/pdf') {
+            return false;
+        }
+        $stream = fopen($absolute, 'rb');
+        if (!$stream) {
+            return false;
+        }
+        try {
+            $tail = '';
+            while (!feof($stream)) {
+                $chunk = fread($stream, 65536);
+                if ($chunk === false || preg_match('~/(JavaScript|JS|Launch|EmbeddedFile)\b~', $tail . $chunk)) {
+                    return false;
+                }
+                $tail = substr($chunk, -64);
+            }
+            return true;
+        } finally {
+            fclose($stream);
+        }
     }
 
     public static function originalName(Task $task, string $field, string $path): string

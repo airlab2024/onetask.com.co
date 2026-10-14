@@ -9,6 +9,7 @@ use App\Notifications\TaskUpcomingNotification;
 use Carbon\Carbon;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Notifications\Actions\Action;
+use App\Support\TaskReminder;
 
 class NotificarTareasProximas extends Command
 {
@@ -20,7 +21,7 @@ class NotificarTareasProximas extends Command
         $hoy = Carbon::now()->startOfDay();
         $fechaNotificacion = $hoy->copy()->addDays(2);
 
-        $tareas = Task::whereDate('cronograma_inicio', $fechaNotificacion)->where('estado', '!=', 'Entregado')->get();
+        $tareas = Task::where('cronograma_inicio', $fechaNotificacion->toDateString())->where('estado', '!=', 'Entregado')->get();
         $usuarios = User::role('SUPER ADMINISTRADOR')->get();
 
         if ($tareas->isEmpty()) {
@@ -28,10 +29,12 @@ class NotificarTareasProximas extends Command
             return;
         }
 
+        $sent = 0;
         foreach ($tareas as $tarea) {
 
 
             foreach ($usuarios as $usuario) {
+                $sent += (int) TaskReminder::sendOnce($tarea, $usuario, function () use ($tarea, $usuario) {
                 // Enviar correo
                 $usuario->notify(new TaskUpcomingNotification($tarea, 2));
 
@@ -46,9 +49,10 @@ class NotificarTareasProximas extends Command
                             ->button()
                     ])
                     ->sendToDatabase($usuario);
+                });
             }
         }
 
-        $this->info('📬 Notificaciones enviadas a los SUPER ADMINISTRADORES por correo y app.');
+        $this->info("Notificaciones programadas: {$sent}. Recordatorios repetidos omitidos.");
     }
 }

@@ -19,7 +19,7 @@ class TaskFileController extends Controller
         abort_unless($file, 404);
 
         $mime = mime_content_type($file['absolute']);
-        $inline = in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'], true);
+        $inline = TaskFiles::canPreview((string) $mime, $file['absolute']);
         $response = response()->file($file['absolute'], [
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',

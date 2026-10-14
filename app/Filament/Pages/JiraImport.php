@@ -17,6 +17,9 @@ use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use App\Support\JiraEndpoint;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class JiraImport extends Page implements HasForms
 {
@@ -38,23 +41,34 @@ class JiraImport extends Page implements HasForms
     public $host;
     public $username;
     public $token;
-    private $loadingProjects;
-    private $projects;
+    public bool $loadingProjects = false;
+    public $projects = [];
     public $selected_projects;
-    private $loadingTickets;
-    private $tickets;
+    public bool $loadingTickets = false;
+    public $tickets = [];
     public $selected_tickets;
     public $data = [];
     public $ticketsDataApi;
 
     public function mount(): void
     {
+        $this->authorizeImport();
         $this->form->fill();
     }
 
     protected static function shouldRegisterNavigation(): bool
     {
         return auth()->user()->can('Import from Jira');
+    }
+
+    private function authorizeImport(): void
+    {
+        abort_unless(auth()->user()?->can('Import from Jira'), 403);
+    }
+
+    private function selectionCacheKey(): string
+    {
+        return 'jira-selection:' . auth()->id() . ':' . hash('sha256', session()->getId());
     }
 
     protected function getSubheading(): string|Htmlable|null
@@ -145,12 +159,12 @@ class JiraImport extends Page implements HasForms
                                         $list = [];
                                         if ($this->projects) {
                                             foreach ($this->projects as $project) {
+                                                $project = (object) $project;
                                                 $list[$project->key] = new HtmlString(
                                                     "<div class='w-full flex flex-col gap-1'>"
                                                     . "<div class='w-full flex items-center gap-1'>"
-                                                    . "<img src='" . $project->avatarUrls->{'16x16'} . "' class='rounded-full w-8 h-8 shadow' />"
-                                                    . "<span class='font-medium text-gray-700 text-base'>" . $project->name . "</span>"
-                                                    . "<div class='text-gray-700 text-xs font-light'><span class='font-medium uppercase'>/</span> " . $project->key . "</div>"
+                                                    . "<span class='font-medium text-gray-700 text-base'>" . e($project->name) . "</span>"
+                                                    . "<div class='text-gray-700 text-xs font-light'><span class='font-medium uppercase'>/</span> " . e($project->key) . "</div>"
                                                     . "</div>"
                                                     . "</div>"
                                                 );
@@ -202,7 +216,7 @@ class JiraImport extends Page implements HasForms
                                                             return new HtmlString(
                                                                 "<div class='w-full flex flex-col gap-1'>"
                                                                 . "<div class='w-full flex items-center gap-1'>"
-                                                                . "<div class='text-gray-700 text-xs font-light'><span class='font-medium uppercase'>" . $issue['code'] . "</span> " . $issue['name'] . "</div>"
+                                                                . "<div class='text-gray-700 text-xs font-light'><span class='font-medium uppercase'>" . e($issue['code']) . "</span> " . e($issue['name']) . "</div>"
                                                                 . "</div>"
                                                                 . "</div>"
                                                             );
@@ -234,37 +248,74 @@ class JiraImport extends Page implements HasForms
 
     public function import(): void
     {
-        if ($this->data && sizeof($this->data)) {
-            $tickets = [];
-            foreach (array_keys($this->data) as $item) {
-                $url = $this->ticketsDataApi[$item];
-                $tickets[] = $this->getJiraTicketDetails($this->host, $this->username, $this->token, $url);
-            }
-            dispatch(new ImportJiraTicketsJob($tickets, auth()->user()));
-            $this->notify('success', __('The importation job is started, when finished you will be notified'), true);
-            $this->redirect(route('filament.pages.jira-import'));
-        } else {
-            $this->notify('warning', __('Please choose at least a jira ticket to import'));
+        $this->authorizeImport();
+        $host = JiraEndpoint::normalize((string) $this->host);
+        $selection = Cache::get($this->selectionCacheKey());
+        if (!$selection || ($selection['host'] ?? '') !== $host) {
+            throw ValidationException::withMessages(['data' => 'La selección expiró. Vuelve a cargar las incidencias.']);
         }
+        $selected = array_keys(array_filter((array) $this->data, fn ($value) => in_array($value, [true, 1, '1'], true)));
+        if (!$selected || count($selected) > config('jira.max_selected', 50)) {
+            throw ValidationException::withMessages(['data' => 'Selecciona entre 1 y 50 incidencias por importación.']);
+        }
+        $tickets = [];
+        foreach ($selected as $item) {
+            $key = $selection['issues'][$item] ?? null;
+            if (!$key) throw ValidationException::withMessages(['data' => 'La incidencia no pertenece a la selección.']);
+            $ticket = $this->getJiraTicketDetails($host, $this->username, $this->token, $key);
+            if (!$ticket || !in_array($ticket->fields->project->key ?? '', $selection['projects'], true)) {
+                throw ValidationException::withMessages(['data' => 'No se pudo validar la incidencia solicitada.']);
+            }
+            $tickets[] = $ticket;
+        }
+        dispatch(new ImportJiraTicketsJob($tickets, auth()->user(), $host));
+        Cache::forget($this->selectionCacheKey());
+        $this->notify('success', __('The importation job is started, when finished you will be notified'), true);
+        $this->redirect(route('filament.pages.jira-import'));
     }
 
     public function updateJiraProjects(): void
     {
-        $client = $this->connectToJira($this->host, $this->username, $this->token);
-        $this->projects = $this->getJiraProjects($client);
-        $this->loadingProjects = false;
+        $this->authorizeImport();
+        $this->loadingProjects = true;
+        try {
+            $this->host = JiraEndpoint::normalize((string) $this->host);
+            $projects = $this->getJiraProjects($this->connectToJira($this->host, $this->username, $this->token));
+            $this->projects = array_map(fn ($p) => ['key' => $p->key, 'name' => $p->name], $projects ?? []);
+            $this->tickets = []; $this->data = []; $this->selected_projects = [];
+            Cache::put($this->selectionCacheKey(), ['host' => $this->host,
+                'projects' => array_column($this->projects, 'key'), 'issues' => []], 900);
+        } finally {
+            $this->loadingProjects = false;
+        }
     }
 
     public function updateJiraTickets(): void
     {
-        $this->ticketsDataApi = [];
-        $client = $this->connectToJira($this->host, $this->username, $this->token);
-        $this->tickets = $this->getJiraTicketsByProject($client, $this->selected_projects);
-        foreach ($this->tickets as $projectKey => $ticket) {
-            foreach ($ticket['issues'] as $issue) {
-                $this->ticketsDataApi[Str::slug($projectKey) . '_' . Str::slug($issue['code'])] = $issue['data']->self;
-            }
+        $this->authorizeImport();
+        $host = JiraEndpoint::normalize((string) $this->host);
+        $known = Cache::get($this->selectionCacheKey());
+        $selected = (array) $this->selected_projects;
+        if (!$known || $known['host'] !== $host || !$selected || array_diff($selected, $known['projects'])) {
+            throw ValidationException::withMessages(['selected_projects' => 'Selecciona proyectos de la consulta actual.']);
         }
-        $this->loadingTickets = false;
+        $this->loadingTickets = true;
+        try {
+            $this->ticketsDataApi = []; $this->data = [];
+            $this->tickets = $this->getJiraTicketsByProject($this->connectToJira($host, $this->username, $this->token), $selected) ?? [];
+            foreach ($this->tickets as $projectKey => &$project) {
+                foreach ($project['issues'] as &$issue) {
+                    $index = Str::slug($projectKey) . '_' . Str::slug($issue['code']);
+                    $this->ticketsDataApi[$index] = $issue['code'];
+                    unset($issue['data']);
+                }
+                unset($issue);
+            }
+            unset($project);
+            Cache::put($this->selectionCacheKey(), ['host' => $host, 'projects' => $selected,
+                'issues' => $this->ticketsDataApi], 900);
+        } finally {
+            $this->loadingTickets = false;
+        }
     }
 }

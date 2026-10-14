@@ -7,17 +7,26 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 use App\Models\Task;
 
-class TaskUpcomingNotification extends Notification
+class TaskUpcomingNotification extends Notification implements \Illuminate\Contracts\Queue\ShouldQueue
 {
     use Queueable;
 
     public Task $task;
     public int $diasRestantes;
+    public string $scheduledStart;
 
     public function __construct(Task $task, int $diasRestantes)
     {
         $this->task = $task;
         $this->diasRestantes = $diasRestantes;
+        $this->scheduledStart = $task->cronograma_inicio->format('Y-m-d');
+    }
+
+    public function shouldSend($notifiable, $channel): bool
+    {
+        $current = Task::find($this->task->id);
+        return $current && $current->estado !== 'Entregado'
+            && $current->cronograma_inicio?->format('Y-m-d') === $this->scheduledStart;
     }
 
     public function via($notifiable)

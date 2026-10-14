@@ -18,17 +18,17 @@ class TicketHour extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id')->withTrashed();
     }
 
     public function ticket(): BelongsTo
     {
-        return $this->belongsTo(Ticket::class, 'ticket_id', 'id');
+        return $this->belongsTo(Ticket::class, 'ticket_id', 'id')->withTrashed();
     }
 
     public function activity(): BelongsTo
     {
-        return $this->belongsTo(Activity::class, 'activity_id', 'id');
+        return $this->belongsTo(Activity::class, 'activity_id', 'id')->withTrashed();
     }
 
     public function forHumans(): Attribute

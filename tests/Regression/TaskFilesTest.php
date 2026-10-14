@@ -75,4 +75,25 @@ class TaskFilesTest extends IsolatedTestCase
         $this->assertSame('Foto antigua.png', TaskFiles::originalName($task, 'fotos_ingreso', 'photos/a.png'));
         $this->assertNull(TaskFiles::resolve('fotos_ingreso', 'photos/a.png'));
     }
+
+    public function test_legacy_storage_prefix_is_resolved_only_inside_allowed_directories(): void
+    {
+        Storage::disk('task_files')->put('documents/old.pdf', '%PDF-1.4');
+        $this->assertSame('documents/old.pdf', TaskFiles::resolve('documento', 'storage/documents/old.pdf')['path']);
+        $this->assertNull(TaskFiles::resolve('fotos_ingreso', 'storage/documents/old.pdf'));
+        $this->assertNull(TaskFiles::resolve('documento', 'storage/../.env'));
+    }
+
+    public function test_active_pdf_is_downloaded_instead_of_previewed(): void
+    {
+        Storage::disk('task_files')->put('documents/active.pdf', '%PDF-1.4 /JavaScript /JS (print())');
+        Storage::disk('task_files')->put('documents/plain.pdf', '%PDF-1.4 plain');
+        $this->assertFalse(TaskFiles::canPreview('application/pdf', Storage::disk('task_files')->path('documents/active.pdf')));
+        $this->assertTrue(TaskFiles::canPreview('application/pdf', Storage::disk('task_files')->path('documents/plain.pdf')));
+        $this->actingAs(7, ['View task']);
+        $task = new Task(['asignado_a' => 7, 'documento' => ['documents/active.pdf']]);
+        $task->id = 1;
+        $response = (new TaskFileController())->show(Request::create('/', 'GET', ['path' => 'documents/active.pdf']), $task, 'documento');
+        $this->assertStringStartsWith('attachment;', $response->headers->get('Content-Disposition'));
+    }
 }

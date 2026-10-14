@@ -23,16 +23,19 @@ class ImportJiraTicketsJob implements ShouldQueue
 
     private $tickets;
     private $user;
+    private string $source = '';
+    public int $tries = 3;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($tickets, $user)
+    public function __construct($tickets, $user, string $source = '')
     {
         $this->tickets = $tickets;
         $this->user = $user;
+        $this->source = $source;
     }
 
     /**
@@ -42,43 +45,42 @@ class ImportJiraTicketsJob implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->tickets && sizeof($this->tickets)) {
-            foreach ($this->tickets as $ticket) {
-                $projectDetails = $ticket->fields->project;
-                $ticketData = $ticket->fields;
-
-                $project = Project::where('name', $projectDetails->name)->first();
-                if (!$project) {
+        $gate = \Illuminate\Support\Facades\Gate::forUser($this->user);
+        abort_unless($this->user->can('Import from Jira'), 403);
+        $gate->authorize('create', Ticket::class);
+        $source = \App\Support\JiraEndpoint::normalize($this->source);
+        foreach ((array) $this->tickets as $ticket) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($ticket, $gate, $source) {
+                $key = \App\Support\JiraEndpoint::issueKey((string) ($ticket->key ?? ''));
+                $reference = hash('sha256', $source . $key);
+                if (Ticket::withTrashed()->where('external_source', $reference)->exists()) return;
+                $details = $ticket->fields->project;
+                $projectKey = \App\Support\JiraEndpoint::projectKey((string) $details->key);
+                $project = Project::where('ticket_prefix', $projectKey)->lockForUpdate()->first();
+                if ($project) {
+                    $gate->authorize('update', $project);
+                } else {
+                    $gate->authorize('create', Project::class);
+                    $projectStatus = ProjectStatus::where('is_default', true)->firstOrFail();
                     $project = Project::create([
-                        'name' => $projectDetails->name,
-                        'description' => __('Project imported from Jira, project key:') . $projectDetails->key,
-                        'status_id' => ProjectStatus::where('is_default', true)->first()->id,
-                        'owner_id' => $this->user->id,
-                        'ticket_prefix' => $projectDetails->key
+                        'name' => $details->name, 'description' => __('Project imported from Jira, project key:') . $projectKey,
+                        'status_id' => $projectStatus->id, 'owner_id' => $this->user->id, 'ticket_prefix' => $projectKey,
                     ]);
-
-                    ProjectUser::create([
-                        'project_id' => $project->id,
-                        'user_id' => $this->user->id,
-                        'role' => config('system.projects.affectations.roles.can_manage')
-                    ]);
+                    ProjectUser::firstOrCreate(['project_id' => $project->id, 'user_id' => $this->user->id],
+                        ['role' => config('system.projects.affectations.roles.can_manage')]);
                 }
-
+                $status = TicketStatus::where('is_default', true)->whereNull('project_id')->firstOrFail();
                 Ticket::create([
-                    'name' => $ticketData->summary,
-                    'content' => $ticketData->description ?? __('No content found in jira ticket'),
-                    'owner_id' => $this->user->id,
-                    'status_id' => TicketStatus::where('is_default', true)->first()->id,
-                    'project_id' => $project->id,
-                    'type_id' => TicketType::where('is_default', true)->first()->id,
-                    'priority_id' => TicketPriority::where('is_default', true)->first()->id,
+                    'name' => $ticket->fields->summary,
+                    'content' => \App\Support\JiraEndpoint::description($ticket->fields->description ?? null),
+                    'owner_id' => $this->user->id, 'status_id' => $status->id, 'project_id' => $project->id,
+                    'type_id' => TicketType::where('is_default', true)->firstOrFail()->id,
+                    'priority_id' => TicketPriority::where('is_default', true)->firstOrFail()->id,
+                    'external_source' => $reference,
                 ]);
-            }
-            FilamentNotification::make()
-                ->title(__('Jira importation'))
-                ->icon('heroicon-o-cloud-download')
-                ->body(__('Jira tickets successfully imported'))
-                ->sendToDatabase($this->user);
+            }, 3);
         }
+        FilamentNotification::make()->title(__('Jira importation'))->icon('heroicon-o-cloud-download')
+            ->body(__('Jira tickets successfully imported'))->sendToDatabase($this->user);
     }
 }

@@ -145,7 +145,7 @@ class ClienteResource extends Resource
     }
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()?->can('Cliente resource');
+        return static::canViewAny();
     }
 
 }

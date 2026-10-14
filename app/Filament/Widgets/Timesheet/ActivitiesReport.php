@@ -19,7 +19,7 @@ class ActivitiesReport extends BarChartWidget
         'lg' => 3
     ];
 
-    public ?string $filter = '2023';
+    public ?string $filter = null;
 
     protected function getHeading(): string
     {
@@ -28,10 +28,10 @@ class ActivitiesReport extends BarChartWidget
 
     protected function getFilters(): ?array
     {
-        return [
-            2022 => 2022,
-            2023 => 2023
-        ];
+        $earliest = TicketHour::where('user_id', auth()->id())->min('created_at');
+        $start = $earliest ? Carbon::parse($earliest)->year : now()->year;
+        $years = array_reverse(range(min($start, now()->year), now()->year));
+        return array_combine($years, $years);
     }
 
     protected function getData(): array
@@ -76,14 +76,15 @@ class ActivitiesReport extends BarChartWidget
 
     protected function filter(User $user, array $params): Collection
     {
+        $year = $params['year'] === null ? now()->year : filter_var($params['year'], FILTER_VALIDATE_INT);
+        abort_unless($year !== false && $year >= 1900 && $year <= now()->year + 1, 422);
+
         return TicketHour::with('activity')
             ->select([
                 'activity_id',
                 DB::raw('SUM(value) as value'),
             ])
-            ->whereRaw(
-                DB::raw("YEAR(created_at)=" . (is_null($params['year']) ? Carbon::now()->format('Y') : $params['year']))
-            )
+            ->whereYear('created_at', $year)
             ->where('user_id', $user->id)
             ->groupBy('activity_id')
             ->get();

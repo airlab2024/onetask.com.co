@@ -70,7 +70,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Force HTTPS over HTTP
-        if (env('APP_FORCE_HTTPS') ?? false) {
+        if (config('app.force_https')) {
             URL::forceScheme('https');
         }
         Filament::serving(function () {
@@ -87,8 +87,8 @@ class AppServiceProvider extends ServiceProvider
         try {
             $settings = app(GeneralSettings::class);
             Config::set('app.locale', $settings->site_language ?? config('app.fallback_locale'));
-            Config::set('app.name', $settings->site_name ?? env('APP_NAME'));
-            Config::set('filament.brand', $settings->site_name ?? env('APP_NAME'));
+            Config::set('app.name', $settings->site_name ?? config('app.name'));
+            Config::set('filament.brand', $settings->site_name ?? config('app.name'));
             Config::set(
                 'app.logo',
                 $settings->site_logo ? asset('storage/' . $settings->site_logo) : asset('favicon.ico')

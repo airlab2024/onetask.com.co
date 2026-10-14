@@ -42,12 +42,12 @@ class ProjectHoursExport implements FromCollection, WithHeadings
             ->each(fn ($ticket) =>
                 $ticket->hours
                     ->each(fn(TicketHour $item) => $collection->push([
-                        '#' => $item->ticket->code,
-                        'ticket' => $item->ticket->name,
-                        'user' => $item->user->name,
+                        '#' => \App\Support\ExportCell::text($item->ticket?->code),
+                        'ticket' => \App\Support\ExportCell::text($item->ticket?->name),
+                        'user' => \App\Support\ExportCell::text($item->user?->name),
                         'time' => $item->forHumans,
                         'hours' => number_format($item->value, 2, ',', ' '),
-                        'activity' => $item->activity ? $item->activity->name : '-',
+                        'activity' => \App\Support\ExportCell::text($item->activity?->name),
                         'date' => $item->created_at->format(__('Y-m-d g:i A')),
                     ]))
             );

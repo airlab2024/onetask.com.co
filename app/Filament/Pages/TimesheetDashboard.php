@@ -35,6 +35,11 @@ class TimesheetDashboard extends Page
         return auth()->user()->can('View timesheet dashboard');
     }
 
+    public function mount(): void
+    {
+        abort_unless(auth()->user()?->can('View timesheet dashboard'), 403);
+    }
+
     protected function getWidgets(): array
     {
         return [

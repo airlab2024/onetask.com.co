@@ -46,14 +46,14 @@ class TimesheetExport implements FromCollection, WithHeadings
 
         foreach ($hours as $item) {
             $collection->push([
-                '#' => $item->ticket->code,
-                'project' => $item->ticket->project->name,
-                'ticket' => $item->ticket->name,
-                'details' => $item->comment,
-                'user' => $item->user->name,
+                '#' => \App\Support\ExportCell::text($item->ticket?->code),
+                'project' => \App\Support\ExportCell::text($item->ticket?->project?->name),
+                'ticket' => \App\Support\ExportCell::text($item->ticket?->name),
+                'details' => \App\Support\ExportCell::text($item->comment),
+                'user' => \App\Support\ExportCell::text($item->user?->name),
                 'time' => $item->forHumans,
                 'hours' => number_format($item->value, 2, ',', ' '),
-                'activity' => $item->activity ? $item->activity->name : '-',
+                'activity' => \App\Support\ExportCell::text($item->activity?->name),
                 'date' => $item->created_at->format(__('Y-m-d g:i A')),
             ]);
         }

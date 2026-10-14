@@ -8,6 +8,8 @@ use Carbon\CarbonInterval;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,7 +24,7 @@ class Ticket extends Model implements HasMedia
     protected $fillable = [
         'name', 'content', 'owner_id', 'responsible_id',
         'status_id', 'project_id', 'code', 'order', 'type_id',
-        'priority_id', 'estimation', 'epic_id', 'sprint_id'
+        'priority_id', 'estimation', 'epic_id', 'sprint_id', 'external_source'
     ];
 
     public static function boot()
@@ -30,19 +32,21 @@ class Ticket extends Model implements HasMedia
         parent::boot();
 
         static::creating(function (Ticket $item) {
-            $project = Project::where('id', $item->project_id)->first();
-            $count = Ticket::where('project_id', $project->id)->count();
-            $order = $project->tickets?->last()?->order ?? -1;
-            $item->code = $project->ticket_prefix . '-' . ($count + 1);
+            $project = Project::where('id', $item->project_id)->lockForUpdate()->firstOrFail();
+            $prefix = $project->ticket_prefix . '-';
+            $last = Ticket::withTrashed()->where('project_id', $project->id)->pluck('code')
+                ->map(fn ($code) => str_starts_with((string) $code, $prefix) ? (int) substr($code, strlen($prefix)) : 0)->max();
+            $order = Ticket::withTrashed()->where('project_id', $project->id)->max('order') ?? -1;
+            $item->code = $prefix . (($last ?? 0) + 1);
             $item->order = $order + 1;
         });
 
         static::created(function (Ticket $item) {
-            if ($item->sprint_id && $item->sprint->epic_id) {
+            if ($item->sprint_id && $item->sprint?->epic_id) {
                 Ticket::where('id', $item->id)->update(['epic_id' => $item->sprint->epic_id]);
             }
             foreach ($item->watchers as $user) {
-                $user->notify(new TicketCreated($item));
+                $user->notify((new TicketCreated($item))->afterCommit());
             }
         });
 
@@ -56,21 +60,28 @@ class Ticket extends Model implements HasMedia
                     'ticket_id' => $item->id,
                     'old_status_id' => $oldStatus,
                     'new_status_id' => $item->status_id,
-                    'user_id' => auth()->user()->id
+                    'user_id' => auth()->id() ?? $item->owner_id
                 ]);
                 foreach ($item->watchers as $user) {
-                    $user->notify(new TicketStatusUpdated($item));
+                    $user->notify((new TicketStatusUpdated($item))->afterCommit());
                 }
             }
 
             // Ticket sprint update
             $oldSprint = $old->sprint_id;
             if ($oldSprint && !$item->sprint_id) {
-                Ticket::where('id', $item->id)->update(['epic_id' => null]);
-            } elseif ($item->sprint_id && $item->sprint->epic_id) {
-                Ticket::where('id', $item->id)->update(['epic_id' => $item->sprint->epic_id]);
+                $item->epic_id = null;
+            } elseif ($item->sprint_id && $item->sprint?->epic_id) {
+                $item->epic_id = $item->sprint->epic_id;
             }
         });
+    }
+
+    protected function performInsert(Builder $query)
+    {
+        // Keep the project lock until the ticket is inserted, not just while
+        // calculating its code, so concurrent requests cannot reuse a number.
+        return DB::transaction(fn () => parent::performInsert($query), 3);
     }
 
     public function setContentAttribute($value): void
