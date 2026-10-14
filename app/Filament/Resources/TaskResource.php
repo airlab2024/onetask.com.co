@@ -192,10 +192,10 @@ class TaskResource extends Resource
                                     ])
                                     ->action(function ($data, $livewire) {
                                         if (Marca::where('nombre', $data['new_marca'])->exists()) {
-                                            $livewire->notify('danger', 'El nombre de la marca ya existe.');
+                                            \App\Support\UiNotification::send('danger', 'El nombre de la marca ya existe.');
                                         } else {
                                             Marca::create(['nombre' => $data['new_marca']]);
-                                            $livewire->notify('success', 'Marca agregada exitosamente.');
+                                            \App\Support\UiNotification::send('success', 'Marca agregada exitosamente.');
                                         }
                                     })
                             ),

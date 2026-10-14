@@ -58,6 +58,7 @@ class ViewTicket extends ViewRecord implements HasForms
                 ->icon('heroicon-o-bell')
                 ->button()
                 ->action(function () {
+                    \Illuminate\Support\Facades\Gate::authorize('view', $this->record);
                     if (
                         $sub = TicketSubscriber::where('user_id', auth()->user()->id)
                             ->where('ticket_id', $this->record->id)
@@ -112,7 +113,9 @@ class ViewTicket extends ViewRecord implements HasForms
                         ->label(__('Comment'))
                         ->rows(3),
                 ])
-                ->action(function (Collection $records, array $data): void {
+                ->action(function (array $data): void {
+                    \Illuminate\Support\Facades\Gate::authorize('view', $this->record);
+                    abort_unless(in_array((int) auth()->id(), [(int) $this->record->owner_id, (int) $this->record->responsible_id]), 403);
                     $value = $data['time'];
                     $comment = $data['comment'];
                     TicketHour::create([
@@ -221,7 +224,7 @@ class ViewTicket extends ViewRecord implements HasForms
                     ->color('danger')
                     ->button()
                     ->close()
-                    ->emit('doDeleteComment', compact('commentId')),
+                    ->dispatch('doDeleteComment', compact('commentId')),
                 Action::make('cancel')
                     ->label(__('Cancel'))
                     ->close()
