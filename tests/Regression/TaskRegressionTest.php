@@ -91,4 +91,39 @@ class TaskRegressionTest extends IsolatedTestCase
         $this->assertStringNotContainsString('javascript:', $html);
         $this->assertStringNotContainsString('onerror', $html);
     }
+
+    public function test_technician_cannot_forge_assignment_on_creation_or_edit(): void
+    {
+        $this->actingAs(7, ['Create task'], ['TECNICO']);
+        $create = new class extends \App\Filament\Resources\TaskResource\Pages\CreateTask {
+            public function input(array $data): array { return $this->mutateFormDataBeforeCreate($data); }
+        };
+        $this->assertSame(7, $create->input(['asignado_a' => 999])['asignado_a']);
+        $edit = new class extends \App\Filament\Resources\TaskResource\Pages\EditTask {
+            public function input(array $data): array { return $this->mutateFormDataBeforeSave($data); }
+        };
+        $edit->record = new Task(['asignado_a' => 7]);
+        $this->assertSame(7, $edit->input(['asignado_a' => 999])['asignado_a']);
+    }
+
+    public function test_force_delete_does_not_recreate_the_order(): void
+    {
+        $this->app['config']->set('media-library.media_model', \Spatie\MediaLibrary\MediaCollections\Models\Media::class);
+        \Illuminate\Support\Facades\Schema::create('media', function ($table) {
+            $table->id(); $table->unsignedBigInteger('model_id'); $table->string('model_type'); $table->integer('order_column')->nullable();
+        });
+        $this->actingAs(7, [], ['SUPER ADMINISTRADOR']);
+        $task = Task::withoutEvents(fn () => Task::create(['task_short_code' => 'Ticket-20261014-1']));
+        $id = $task->id;
+        $task->forceDelete();
+        $this->assertFalse(Task::withTrashed()->whereKey($id)->exists());
+    }
+
+    public function test_order_update_records_the_author_without_a_second_save(): void
+    {
+        $this->actingAs(7, [], ['SUPER ADMINISTRADOR']);
+        $task = Task::withoutEvents(fn () => Task::create(['task_short_code' => 'Ticket-20261014-1']));
+        $task->estado = 'Entregado'; $task->save();
+        $this->assertSame(7, (int) $task->fresh()->modificado_por);
+    }
 }

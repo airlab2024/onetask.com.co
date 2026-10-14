@@ -30,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Applies to application forms and authentication packages alike.
+        $this->app['validator']->resolver(fn ($translator, $data, $rules, $messages, $attributes) =>
+            new \App\Support\StrictValidator($translator, $data, $rules, $messages, $attributes));
+
         // Configure application
         $this->configureApp();
 

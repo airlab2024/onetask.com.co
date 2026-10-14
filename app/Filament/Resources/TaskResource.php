@@ -74,6 +74,7 @@ class TaskResource extends Resource
                     ]),
                     Forms\Components\Grid::make(3)->schema([
                         Forms\Components\TextInput::make('entregado_por')
+                            ->maxLength(255)
                             ->label(label: 'ENTREGADO POR')
                             ->required(),
                         Forms\Components\Select::make('cliente_id')
@@ -131,6 +132,7 @@ class TaskResource extends Resource
                                     ->maxLength(255),
                             ])
                             ->createOptionUsing(function (array $data) {
+                                Gate::authorize('create', Cliente::class);
                                 $cliente = Cliente::create($data);
 
                                 // Notificación de éxito
@@ -141,7 +143,8 @@ class TaskResource extends Resource
                                     ->send();
 
                                 return $cliente->getKey();
-                            }),
+                            })
+                            ->createOptionAction(fn (FormAction $action) => $action->visible(fn () => Gate::allows('create', Cliente::class))),
                         Forms\Components\Select::make('equipo')
                             ->label('EQUIPO (CONTAMINANTE)')
                             ->options([
@@ -183,6 +186,7 @@ class TaskResource extends Resource
                                     ->icon('heroicon-o-plus')
                                     ->form([
                                         TextInput::make('new_marca')
+                                            ->maxLength(255)
                                             ->label('Nombre de la Marca')
                                             ->required(),
                                     ])
@@ -198,14 +202,17 @@ class TaskResource extends Resource
 
 
                         Forms\Components\TextInput::make('modelo')
+                            ->maxLength(255)
                             ->label('MODELO')
                             ->required(),
                         Forms\Components\TextInput::make('serial')
+                            ->maxLength(255)
                             ->label('SERIAL')
                             ->required(),
                     ]),
                     Forms\Components\Grid::make(3)->schema([
                         Forms\Components\TextInput::make('codigo_interno')
+                            ->maxLength(255)
                             ->label('CODIGO INTERNO'),
                     ]),
                     TaskFileUpload::make('remision_ingreso')
@@ -226,12 +233,15 @@ class TaskResource extends Resource
                 Forms\Components\Section::make('Detalles del Equipo')->schema([
                     Forms\Components\Grid::make(3)->schema([
                         Forms\Components\Textarea::make('accesorios_entregados')
+                            ->maxLength(10000)
                             ->label('ACCESORIOS ENTREGADOS')
                             ->required(),
                         Forms\Components\Textarea::make('descripcion_falla_cliente')
+                            ->maxLength(10000)
                             ->label('DESCRIPCION FALLA SEGUN CLIENTE')
                             ->required(),
                         Forms\Components\Textarea::make('observaciones')
+                            ->maxLength(10000)
                             ->label('OBSERVACIONES')
                             ->required(),
                     ]),
@@ -265,7 +275,8 @@ class TaskResource extends Resource
                             ->label('Asignado a')
                             ->options(User::all()->pluck('name', 'id'))
                             ->searchable()
-                            ->disabled(fn() => auth()->user()?->hasRole('TECNICO'))
+                            ->default(fn () => auth()->user()?->hasRole('TECNICO') ? auth()->id() : null)
+                            ->disabled(fn() => auth()->user()?->hasRole('TECNICO') && !auth()->user()?->hasRole('SUPER ADMINISTRADOR'))
                             ->required(),
                     ]),
                 ]),
@@ -301,6 +312,7 @@ class TaskResource extends Resource
                             ])
                             ->required(),
                         Forms\Components\Textarea::make('actividades_realizadas')
+                            ->maxLength(10000)
                             ->label('ACTIVIDADES REALIZADAS')
                             ->required(),
                         Forms\Components\Select::make('informe_diagnostico')
@@ -342,6 +354,7 @@ class TaskResource extends Resource
                             ->label('FECHA RETIRO')
                             ->displayFormat('Y-m-d'),
                         Forms\Components\TextInput::make('retirado_por')
+                            ->maxLength(255)
                             ->label('RETIRADO POR'),
                     ]),
                     TaskFileUpload::make('remision_salida')

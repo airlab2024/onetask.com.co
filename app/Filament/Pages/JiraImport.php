@@ -296,7 +296,7 @@ class JiraImport extends Page implements HasForms
         $host = JiraEndpoint::normalize((string) $this->host);
         $known = Cache::get($this->selectionCacheKey());
         $selected = (array) $this->selected_projects;
-        if (!$known || $known['host'] !== $host || !$selected || array_diff($selected, $known['projects'])) {
+        if (!$known || $known['host'] !== $host || !$selected || array_diff($selected, $known['available_projects'] ?? $known['projects'])) {
             throw ValidationException::withMessages(['selected_projects' => 'Selecciona proyectos de la consulta actual.']);
         }
         $this->loadingTickets = true;
@@ -313,7 +313,7 @@ class JiraImport extends Page implements HasForms
             }
             unset($project);
             Cache::put($this->selectionCacheKey(), ['host' => $host, 'projects' => $selected,
-                'issues' => $this->ticketsDataApi], 900);
+                'issues' => $this->ticketsDataApi, 'available_projects' => $known['available_projects'] ?? $known['projects']], 900);
         } finally {
             $this->loadingTickets = false;
         }

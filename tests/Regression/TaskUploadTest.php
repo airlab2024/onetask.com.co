@@ -83,6 +83,15 @@ class TaskUploadTest extends IsolatedTestCase
         $form->getState();
     }
 
+    public function test_forged_temporary_file_cannot_read_outside_the_upload_directory(): void
+    {
+        [$form, $component] = $this->form();
+        Storage::disk('local')->put('private.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jLeoAAAAASUVORK5CYII='));
+        $this->expectException(\League\Flysystem\PathTraversalDetected::class);
+        $component->state(['forged' => new NamedUploadFixture('../private.png', 'Copied.png')]);
+        $form->getState();
+    }
+
     public function test_edit_keeps_legacy_numeric_names_when_a_new_photo_is_added(): void
     {
         $task = new Task(['fotos_ingreso' => ['photos/old.png'], 'original_filenames_fotos_ingreso' => ['Nombre original.png']]);

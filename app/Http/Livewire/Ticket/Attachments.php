@@ -27,6 +27,7 @@ class Attachments extends Component implements HasForms, HasTable
 
     public function mount(): void
     {
+        \Illuminate\Support\Facades\Gate::authorize('view', $this->ticket);
         $this->form->fill();
     }
 
@@ -45,9 +46,18 @@ class Attachments extends Component implements HasForms, HasTable
         return [
             SpatieMediaLibraryFileUpload::make('attachments')
                 ->label(__('Attachments'))
-                ->hint(__('Important: If a file has the same name, it will be replaced'))
                 ->helperText(__('Here you can attach all files needed for this ticket'))
                 ->multiple()
+                ->maxSize(10240)
+                ->maxFiles(20)
+                ->acceptedFileTypes([
+                    'image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain',
+                    'application/msword', 'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ])
+                ->getUploadedFileNameForStorageUsing(fn (\Livewire\TemporaryUploadedFile $file) =>
+                    \Illuminate\Support\Str::uuid() . '.' . ($file->guessExtension() ?: 'bin'))
                 ->disablePreview()
         ];
     }
@@ -68,6 +78,7 @@ class Attachments extends Component implements HasForms, HasTable
 
     protected function getTableQuery(): Builder
     {
+        \Illuminate\Support\Facades\Gate::authorize('view', $this->ticket);
         return $this->ticket->media()->getQuery();
     }
 

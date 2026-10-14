@@ -133,7 +133,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     }
     public function unreadNotifications()
     {
-        return $this->notifications()->whereNull('read_at')->get();
+        return $this->notifications()->whereNull('read_at');
     }
 
 }

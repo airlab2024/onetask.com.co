@@ -22,6 +22,17 @@ class TaskFileUpload extends FileUpload
         $this->getUploadedFileNameForStorageUsing(
             fn (TemporaryUploadedFile $file) => Str::uuid() . '.' . ($file->guessExtension() ?: 'bin')
         );
+        $this->helperText(function (?Task $record, self $component): ?string {
+            if (!$record) {
+                return null;
+            }
+            foreach (TaskFiles::paths($record->{$component->getName()}) as $path) {
+                if (!TaskFiles::resolve($component->getName(), $path)) {
+                    return 'Hay archivos anteriores que no están disponibles. Solicita su recuperación al administrador.';
+                }
+            }
+            return null;
+        });
 
         // Preserve missing legacy references instead of silently deleting them on edit.
         $this->afterStateHydrated(function (self $component, $state, Closure $set, ?Task $record): void {

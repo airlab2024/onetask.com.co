@@ -57,6 +57,7 @@ class TaskFilesTest extends IsolatedTestCase
 
     public function test_thumbnail_preserves_legacy_paths_and_escapes_original_names(): void
     {
+        Storage::disk('task_files')->put('remisiones_ingreso/old.pdf', '%PDF-1.4');
         $task = new Task(['remision_ingreso' => [['path' => 'remisiones_ingreso/old.pdf', 'name' => 'Informe <script>.pdf']]]);
         $task->id = 1;
         $html = view('filament.tables.columns.remision-ingreso-thumbnail', [
@@ -67,6 +68,16 @@ class TaskFilesTest extends IsolatedTestCase
         $this->assertStringContainsString('remisiones_ingreso%2Fold.pdf', $html);
         $this->assertStringContainsString('Informe &lt;script&gt;.pdf', $html);
         $this->assertStringNotContainsString('<script>', $html);
+    }
+
+    public function test_missing_document_is_shown_without_a_broken_download_link(): void
+    {
+        $task = new Task(['documento' => ['documents/missing.pdf']]); $task->id = 1;
+        $html = view('filament.tables.columns.document-thumbnail', [
+            'getRecord' => fn () => $task, 'getState' => fn () => $task->documento,
+        ])->render();
+        $this->assertStringContainsString('Archivo no disponible', $html);
+        $this->assertStringNotContainsString('<a ', $html);
     }
 
     public function test_missing_files_are_not_resolved_and_original_names_remain_readable(): void

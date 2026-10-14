@@ -36,6 +36,7 @@ class WeeklyReport extends BarChartWidget
 
     protected function getData(): array
     {
+        abort_unless(is_string($this->filter) && preg_match('/^\d{4}-\d{2}-\d{2} - \d{4}-\d{2}-\d{2}$/', $this->filter), 422);
         $weekDaysData = explode(' - ', $this->filter);
 
         $collection = $this->filter(auth()->user(), [
@@ -81,14 +82,18 @@ class WeeklyReport extends BarChartWidget
 
     protected function filter(User $user, array $params)
     {
+        \Illuminate\Support\Facades\Validator::make($params, [
+            'weekStartDate' => ['required', 'date_format:Y-m-d'],
+            'weekEndDate' => ['required', 'date_format:Y-m-d', 'after_or_equal:weekStartDate'],
+        ])->validate();
+        $start = Carbon::parse($params['weekStartDate'])->startOfDay();
+        $end = Carbon::parse($params['weekEndDate'])->endOfDay();
+        abort_unless($start->diffInDays($end) <= 6, 422);
         return TicketHour::select([
             DB::raw("DATE_FORMAT(created_at,'%Y-%m-%d') as day"),
             DB::raw('SUM(value) as value'),
         ])
-            ->whereBetween('created_at', [$params['weekStartDate'], $params['weekEndDate']])
-            ->whereRaw(
-                DB::raw("YEAR(created_at)=" . (is_null($params['year']) ? Carbon::now()->format('Y') : $params['year']))
-            )
+            ->whereBetween('created_at', [$start, $end])
             ->where('user_id', $user->id)
             ->groupBy(DB::raw("DATE_FORMAT(created_at,'%Y-%m-%d')"))
             ->get();

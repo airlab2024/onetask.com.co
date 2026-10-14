@@ -12,7 +12,7 @@ class TaskInputValidator
     public static function update(Task $task, string $field, $value)
     {
         Gate::authorize('update', $task);
-        abort_if($field === 'asignado_a' && auth()->user()?->hasRole('TECNICO'), 403);
+        abort_if($field === 'asignado_a' && auth()->user()?->hasRole('TECNICO') && !auth()->user()?->hasRole('SUPER ADMINISTRADOR'), 403);
         $rules = [
             'start_date' => ['required', 'date_format:Y-m-d'],
             'recibido_por' => ['required', 'string', Rule::in(['GERMAN BARKER', 'PABLO GUERRERO', 'NORBEY BARAHONA', 'JOSE LOPEZ'])],

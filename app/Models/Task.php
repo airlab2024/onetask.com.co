@@ -56,6 +56,7 @@ class Task extends Model implements HasMedia
         'original_filename',
         'original_filenames_fotos_ingreso',
         'creado_por',
+        'modificado_por',
         'eliminado_por',
 
     ];
@@ -87,6 +88,12 @@ class Task extends Model implements HasMedia
             }
         });
 
+        static::updating(function ($task) {
+            if (auth()->id() !== null && $task->isDirty()) {
+                $task->modificado_por = auth()->id();
+            }
+        });
+
         static::updated(function ($task) {
             $updatedBy = auth()->user()->name ?? 'Sistema';
 
@@ -101,7 +108,7 @@ class Task extends Model implements HasMedia
             // Detectar cambios reales (evitar updated_at)
             $changes = [];
             foreach ($task->getChanges() as $field => $newValue) {
-                if (!in_array($field, ['updated_at'])) {
+                if (!in_array($field, ['updated_at', 'modificado_por'])) {
                     $original = $task->getOriginal($field);
                     $changes[$field] = [
                         'old' => $original,
@@ -154,9 +161,14 @@ class Task extends Model implements HasMedia
 
 
 
+        static::deleting(function ($task) {
+            if (auth()->id() !== null && $task->exists) {
+                $task->eliminado_por = auth()->id();
+                $task->saveQuietly();
+            }
+        });
+
         static::deleted(function ($task) {
-            $task->eliminado_por = auth()->id(); // Guardar usuario que elimina la tarea
-            $task->saveQuietly(); // Guardar sin disparar eventos
 
             $assignedUser = User::find($task->asignado_a);
             $deletedBy = auth()->user()->name ?? 'Sistema';
@@ -242,7 +254,7 @@ class Task extends Model implements HasMedia
                 $q->where('asignado_a', $filters['asignado_a']);
             })
             ->when(isset($filters['fecha_inicio']) && isset($filters['fecha_fin']), function ($q) use ($filters) {
-                $q->whereBetween('created_at', [$filters['fecha_inicio'], $filters['fecha_fin']]);
+                $q->whereBetween('created_at', [Carbon::parse($filters['fecha_inicio'])->startOfDay(), Carbon::parse($filters['fecha_fin'])->endOfDay()]);
             });
     }
 

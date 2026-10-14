@@ -94,6 +94,7 @@ abstract class IsolatedTestCase extends TestCase
             $table->id(); $table->string('task_short_code')->nullable();
             $table->unsignedBigInteger('creado_por')->nullable();
             $table->unsignedBigInteger('eliminado_por')->nullable();
+            $table->unsignedBigInteger('modificado_por')->nullable();
             $table->unsignedBigInteger('asignado_a')->nullable();
             $table->string('original_filename')->nullable();
             $table->string('original_filenames_fotos_ingreso')->nullable();

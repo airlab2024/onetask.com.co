@@ -8,9 +8,13 @@
             $name = \App\Support\TaskFiles::originalName($task, 'remision_salida', $path);
             $url = \App\Support\TaskFiles::url($task, 'remision_salida', $path);
         @endphp
+        @if (\App\Support\TaskFiles::resolve('remision_salida', $path))
         <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" title="{{ $name }}">
             <img src="{{ asset(strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf' ? 'icons/pdf.png' : 'icons/file.png') }}" alt="{{ $name }}" width="25" />
         </a>
+        @else
+            <span class="text-gray-500" title="{{ $name }}">Archivo no disponible</span>
+        @endif
     @empty
         <span class="text-gray-500">No hay remisiones</span>
     @endforelse
