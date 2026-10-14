@@ -97,7 +97,7 @@ class UserResource extends Resource
 
                 Tables\Columns\TextColumn::make('socials')
                     ->label(__('Linked social networks'))
-                    ->view('partials.filament.onetask.resources.social-icon'),
+                    ->view('partials.filament.resources.social-icon'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('Created at'))

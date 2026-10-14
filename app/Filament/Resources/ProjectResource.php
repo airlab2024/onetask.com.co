@@ -178,10 +178,11 @@ class ProjectResource extends Resource
                     ->limit(2),
 
                 Tables\Columns\BadgeColumn::make('type')
-                    ->enum([
+                    ->formatStateUsing(fn ($state) => match ($state) {
                         'kanban' => __('Kanban'),
-                        'scrum' => __('Scrum')
-                    ])
+                        'scrum' => __('Scrum'),
+                        default => $state,
+                    })
                     ->colors([
                         'secondary' => 'kanban',
                         'warning' => 'scrum',

@@ -5,17 +5,18 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\Timesheet\ActivitiesReport;
 use App\Filament\Widgets\Timesheet\MonthlyReport;
 use App\Filament\Widgets\Timesheet\WeeklyReport;
-use Filament\Pages\Page;
+use Filament\Pages\Dashboard;
 
-class TimesheetDashboard extends Page
+class TimesheetDashboard extends Dashboard
 {
     protected static ?string $slug = 'timesheet-dashboard';
+    protected static string $routePath = '/timesheet-dashboard';
 
     protected static ?int $navigationSort = 2;
 
-    protected static string $view = 'filament::pages.dashboard';
+    protected static string $view = 'filament-panels::pages.dashboard';
 
-    protected function getColumns(): int | array
+    public function getColumns(): int | array
     {
         return 6;
     }
@@ -40,7 +41,7 @@ class TimesheetDashboard extends Page
         abort_unless(auth()->user()?->can('View timesheet dashboard'), 403);
     }
 
-    protected function getWidgets(): array
+    public function getWidgets(): array
     {
         return [
             MonthlyReport::class,

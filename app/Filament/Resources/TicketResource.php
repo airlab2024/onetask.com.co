@@ -276,7 +276,7 @@ class TicketResource extends Resource
             Tables\Columns\TextColumn::make('type.name')
                 ->label(__('Type'))
                 ->formatStateUsing(
-                    fn($record) => view('partials.filament.onetask.resources.ticket-type', ['state' => $record->type])
+                    fn($record) => view('partials.filament.resources.ticket-type', ['state' => $record->type])
                 )
                 ->sortable()
                 ->searchable(),
