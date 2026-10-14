@@ -543,14 +543,14 @@ class TaskResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\SelectColumn::make('asignado_a')
-                    ->disabled(fn($record) => !static::canEdit($record) || auth()->user()?->hasRole('TECNICO'))
+                    ->disabled(fn($record) => !static::canEdit($record) ||
+                        (auth()->user()?->hasRole('TECNICO') && !auth()->user()?->hasRole('SUPER ADMINISTRADOR')))
                     ->updateStateUsing(fn($record, $state) => TaskInputValidator::update($record, 'asignado_a', $state))
                     ->label('ASIGNADO A')
                     ->alignCenter() // Agregado para centrar encabezado y contenido
                     ->options(fn() => User::pluck('name', 'id'))
                     ->searchable()
                     ->sortable()
-                    ->disabled(fn() => auth()->user()?->hasRole('TECNICO'))
                     ->alignCenter() // Agregado para centrar encabezado y contenido
                     ->extraAttributes([
                         'class' => 'w-full border rounded-md p-1.5 bg-white text-gray-2000 text-center text-sm',
