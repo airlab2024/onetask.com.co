@@ -1,4 +1,4 @@
-<x-filament::page>
+<x-filament-panels::page>
 
     <div class="w-full flex flex-col gap-10 justify-center items-center">
         <form wire:submit.prevent="search" class="lg:w-[50%] w-full">
@@ -12,4 +12,4 @@
         </div>
     </div>
 
-</x-filament::page>
+</x-filament-panels::page>

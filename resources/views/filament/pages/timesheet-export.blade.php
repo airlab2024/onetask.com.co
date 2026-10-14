@@ -1,4 +1,4 @@
-<x-filament::page>
+<x-filament-panels::page>
     <div class="w-full flex flex-col gap-10 justify-center items-center">
         <form wire:submit.prevent="create"  class="lg:w-[50%] w-full">
             {{ $this->form }}
@@ -7,4 +7,4 @@
             </x-filament::button>
         </form>
     </div>
-</x-filament::page>
+</x-filament-panels::page>

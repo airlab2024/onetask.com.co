@@ -1,4 +1,4 @@
-<x-filament::page>
+<x-filament-panels::page>
 
     <div class="w-full flex flex-col gap-1 bg-warning-500 border border-warning-600 text-white py-3 px-4 text-sm rounded-lg">
         <span class="font-medium">{{ __('Important:') }}</span>
@@ -9,4 +9,4 @@
         {{ $this->form }}
     </form>
 
-</x-filament::page>
+</x-filament-panels::page>

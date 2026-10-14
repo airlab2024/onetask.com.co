@@ -17,14 +17,13 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ViewTicket extends ViewRecord implements HasForms
 {
-    use InteractsWithForms;
 
     protected static string $resource = TicketResource::class;
 
@@ -36,13 +35,13 @@ class ViewTicket extends ViewRecord implements HasForms
 
     public $selectedCommentId;
 
-    public function mount($record): void
+    public function mount(int | string $record): void
     {
         parent::mount($record);
         $this->form->fill();
     }
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\Action::make('toggleSubscribe')
@@ -65,23 +64,23 @@ class ViewTicket extends ViewRecord implements HasForms
                             ->first()
                     ) {
                         $sub->delete();
-                        $this->notify('success', __('You unsubscribed from the ticket'));
+                        \App\Support\UiNotification::send('success', __('You unsubscribed from the ticket'));
                     } else {
                         TicketSubscriber::create([
                             'user_id' => auth()->user()->id,
                             'ticket_id' => $this->record->id
                         ]);
-                        $this->notify('success', __('You subscribed to the ticket'));
+                        \App\Support\UiNotification::send('success', __('You subscribed to the ticket'));
                     }
                     $this->record->refresh();
                 }),
             Actions\Action::make('share')
                 ->label(__('Share'))
-                ->color('secondary')
+                ->color('gray')
                 ->button()
                 ->icon('heroicon-o-share')
-                ->action(fn() => $this->dispatchBrowserEvent('shareTicket', [
-                    'url' => route('filament.resources.tickets.share', $this->record->code)
+                ->action(fn() => $this->dispatch('shareTicket', ...[
+                    'url' => route('filament.onetask.resources.tickets.share', $this->record->code)
                 ])),
             Actions\EditAction::make(),
             Actions\Action::make('logHours')
@@ -124,12 +123,12 @@ class ViewTicket extends ViewRecord implements HasForms
                         'comment' => $comment
                     ]);
                     $this->record->refresh();
-                    $this->notify('success', __('Time logged into ticket'));
+                    \App\Support\UiNotification::send('success', __('Time logged into ticket'));
                 }),
             Actions\ActionGroup::make([
                 Actions\Action::make('exportLogHours')
                     ->label(__('Export time logged'))
-                    ->icon('heroicon-o-document-download')
+                    ->icon('heroicon-o-document-arrow-down')
                     ->color('warning')
                     ->visible(
                         fn() => $this->record->watchers->where('id', auth()->user()->id)->count()
@@ -149,7 +148,7 @@ class ViewTicket extends ViewRecord implements HasForms
                         $this->record->watchers->where('id', auth()->user()->id)->count()
                         && $this->record->hours()->count()
                     ))
-                ->color('secondary'),
+                ->color('gray'),
         ];
     }
 
@@ -168,6 +167,11 @@ class ViewTicket extends ViewRecord implements HasForms
         ];
     }
 
+    protected function getForms(): array
+    {
+        return ['form' => $this->makeForm()->schema($this->getFormSchema())->statePath('data')->model($this->getRecord())];
+    }
+
     public function submitComment(): void
     {
         \Illuminate\Support\Facades\Gate::authorize('view', $this->record);
@@ -184,7 +188,7 @@ class ViewTicket extends ViewRecord implements HasForms
         }
         $this->record->refresh();
         $this->cancelEditComment();
-        $this->notify('success', __('Comment saved'));
+        \App\Support\UiNotification::send('success', __('Comment saved'));
     }
 
     public function isAdministrator(): bool
@@ -230,7 +234,7 @@ class ViewTicket extends ViewRecord implements HasForms
     {
         $this->editableComment($commentId)->delete();
         $this->record->refresh();
-        $this->notify('success', __('Comment deleted'));
+        \App\Support\UiNotification::send('success', __('Comment deleted'));
     }
 
     protected function editableComment(int $commentId): TicketComment

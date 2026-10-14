@@ -36,52 +36,25 @@ class AppServiceProvider extends ServiceProvider
 
         // Configure application
         $this->configureApp();
+        \Jeffgreco13\FilamentBreezy\Models\BreezySession::saved(fn ($session) => \App\Support\BreezyEnrollmentSync::updateLegacyColumns($session));
+        \Jeffgreco13\FilamentBreezy\Models\BreezySession::deleted(fn ($session) => \App\Support\BreezyEnrollmentSync::updateLegacyColumns($session, true));
 
-        // Register custom Filament theme
-        Filament::serving(function () {
-            Filament::registerTheme(
-                app(Vite::class)('resources/css/filament.scss'),
-            );
-        });
-
-        // Register tippy styles
-        Filament::registerStyles([
-            'https://unpkg.com/tippy.js@6/dist/tippy.css',
-        ]);
-
-        // Register scripts
+        // Panel configuration lives in OnetaskPanelProvider. Publish custom assets
+        // through the supported Filament 3 asset registry.
         try {
-            Filament::registerScripts([
-                app(Vite::class)('resources/js/filament.js'),
+            \Filament\Support\Facades\FilamentAsset::register([
+                \Filament\Support\Assets\Js::make('onetask', app(Vite::class)->asset('resources/js/filament.js'))->module(),
+                \Filament\Support\Assets\Css::make('tippy', 'https://unpkg.com/tippy.js@6/dist/tippy.css'),
+                \Filament\Support\Assets\Css::make('onetask-custom', asset('css/filament-custom.css')),
             ]);
-        } catch (\Exception $e) {
-            // Manifest not built yet!
+        } catch (\Illuminate\Foundation\ViteManifestNotFoundException $e) {
+            // Assets are built before the candidate is exposed to HTTP.
         }
-
-        // Add custom meta (favicon)
-        Filament::pushMeta([
-            new HtmlString('<link rel="icon"
-                                       type="image/x-icon"
-                                       href="' . config('app.logo') . '">'),
-        ]);
-
-        // Register navigation groups
-        Filament::registerNavigationGroups([
-            __('Management'),
-            __('Referential'),
-            __('Security'),
-            __('Settings'),
-        ]);
 
         // Force HTTPS over HTTP
         if (config('app.force_https')) {
             URL::forceScheme('https');
         }
-        Filament::serving(function () {
-            Filament::registerStyles([
-                asset('css/filament-custom.css'),
-            ]);
-        });
 
 
     }

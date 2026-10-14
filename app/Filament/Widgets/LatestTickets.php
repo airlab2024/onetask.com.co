@@ -60,7 +60,7 @@ class LatestTickets extends BaseWidget
                             ' . e($record->project->name) . '
                         </span>
                         <span>
-                            <a href="' . route('filament.resources.tickets.share', $record->code)
+                            <a href="' . route('filament.onetask.resources.tickets.share', $record->code)
                     . '" target="_blank" class="text-primary-500 text-sm hover:underline">'
                     . e($record->code)
                     . '</a>

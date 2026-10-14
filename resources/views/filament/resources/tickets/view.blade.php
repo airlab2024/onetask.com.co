@@ -1,7 +1,7 @@
 @php($record = $this->record)
-<x-filament::page>
+<x-filament-panels::page>
 
-    <a href="{{ route('filament.pages.kanban/{project}', ['project' => $record->project->id]) }}"
+    <a href="{{ route('filament.onetask.pages.kanban/{project}', ['project' => $record->project->id]) }}"
        class="flex items-center gap-1 text-gray-500 hover:text-gray-700 font-medium text-xs">
         <x-heroicon-o-arrow-left class="w-4 h-4"/> {{ __('Back to kanban board') }}
     </a>
@@ -207,7 +207,7 @@
                                     {{ __(config('system.tickets.relations.list.' . $relation->type)) }}
                                 </span>
                                 <a target="_blank" class="font-medium hover:underline"
-                                   href="{{ route('filament.resources.tickets.share', $relation->relation->code) }}">
+                                   href="{{ route('filament.onetask.resources.tickets.share', $relation->relation->code) }}">
                                     {{ $relation->relation->code }}
                                 </a>
                             </div>
@@ -334,7 +334,7 @@
 
     </div>
 
-</x-filament::page>
+</x-filament-panels::page>
 
 @push('scripts')
     <script>

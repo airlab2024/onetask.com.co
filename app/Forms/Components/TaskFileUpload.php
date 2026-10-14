@@ -7,7 +7,7 @@ use App\Support\TaskFiles;
 use Closure;
 use Filament\Forms\Components\FileUpload;
 use Illuminate\Support\Str;
-use Livewire\TemporaryUploadedFile;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class TaskFileUpload extends FileUpload
 {
@@ -35,7 +35,7 @@ class TaskFileUpload extends FileUpload
         });
 
         // Preserve missing legacy references instead of silently deleting them on edit.
-        $this->afterStateHydrated(function (self $component, $state, Closure $set, ?Task $record): void {
+        $this->afterStateHydrated(function (self $component, $state, \Filament\Forms\Set $set, ?Task $record): void {
             $files = [];
             foreach (TaskFiles::paths($state) as $file) {
                 $files[(string) Str::uuid()] = $file;
@@ -50,9 +50,17 @@ class TaskFileUpload extends FileUpload
             }
         });
 
-        $this->getUploadedFileUrlUsing(function (self $component, string $file, ?Task $record): ?string {
-            return $record && TaskFiles::resolve($component->getName(), $file)
-                ? TaskFiles::url($record, $component->getName(), $file) : null;
+        $this->getUploadedFileUsing(function (self $component, string $file, ?Task $record): ?array {
+            $resolved = $record ? TaskFiles::resolve($component->getName(), $file) : null;
+            if (!$resolved) {
+                return null;
+            }
+            return [
+                'name' => TaskFiles::originalName($record, $component->getName(), $file),
+                'size' => filesize($resolved['absolute']),
+                'type' => (new \finfo(FILEINFO_MIME_TYPE))->file($resolved['absolute']),
+                'url' => TaskFiles::url($record, $component->getName(), $file),
+            ];
         });
 
     }

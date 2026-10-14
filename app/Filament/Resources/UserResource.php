@@ -6,10 +6,10 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Support\HtmlString;
 
@@ -21,7 +21,7 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static function getNavigationLabel(): string
+    public static function getNavigationLabel(): string
     {
         return __('Users');
     }
@@ -31,7 +31,7 @@ class UserResource extends Resource
         return static::getNavigationLabel();
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return __('Permissions');
     }
@@ -97,7 +97,7 @@ class UserResource extends Resource
 
                 Tables\Columns\TextColumn::make('socials')
                     ->label(__('Linked social networks'))
-                    ->view('partials.filament.resources.social-icon'),
+                    ->view('partials.filament.onetask.resources.social-icon'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('Created at'))

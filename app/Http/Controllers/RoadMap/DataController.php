@@ -20,6 +20,7 @@ class DataController extends Controller
      */
     public function data(Project $project): JsonResponse
     {
+        \Illuminate\Support\Facades\Gate::authorize('view', $project);
         $project = Project::where(function ($query) {
             return $query->where('owner_id', auth()->user()->id)
                 ->orWhereHas('users', function ($query) {
@@ -66,7 +67,7 @@ class DataController extends Controller
     {
         return [
             "pID" => $epic->id,
-            "pName" => $epic->name,
+            "pName" => e($epic->name),
             "pStart" => $epic->starts_at->format('Y-m-d'),
             "pEnd" => $epic->ends_at->format('Y-m-d') . " 23:59:59",
             "pClass" => "g-custom-task",
@@ -102,13 +103,13 @@ class DataController extends Controller
         $pComp = round($ticket->completudePercentage, 0);
         return [
             "pID" => ($epic?->id ?? "N") . $ticket->id,
-            "pName" => $ticket->name,
+            "pName" => e($ticket->name),
             "pStart" => "",
             "pEnd" => "",
             "pClass" => "g-custom-task",
             "pLink" => "",
             "pMile" => 0,
-            "pRes" => $ticket->responsible?->name ?? "",
+            "pRes" => e($ticket->responsible?->name ?? ""),
             "pComp" => min($pComp, 100),
             "pGroup" => 0,
             "pParent" => $epic?->id ?? "",

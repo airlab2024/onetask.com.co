@@ -80,7 +80,7 @@ class IssueForm extends Component implements HasForms
                                         return $query->where('users.id', auth()->user()->id);
                                     })->pluck('name', 'id')->toArray()
                                 )
-                                ->afterStateUpdated(fn(Closure $get) => $this->initProject($get('project_id')))
+                                ->afterStateUpdated(fn(\Filament\Forms\Get $get) => $this->initProject($get('project_id')))
                                 ->required(),
 
                             Forms\Components\Select::make('sprint_id')
@@ -187,12 +187,12 @@ class IssueForm extends Component implements HasForms
         abort_unless($project->status_type === 'custom'
             ? (int) $status->project_id === (int) $project->id : $status->project_id === null, 422);
         Ticket::create($data);
-        Filament::notify('success', __('Ticket successfully saved'));
+        \App\Support\UiNotification::send('success', __('Ticket successfully saved'));
         $this->cancel(true);
     }
 
     public function cancel($refresh = false): void
     {
-        $this->emit('closeTicketDialog', $refresh);
+        $this->dispatch('closeTicketDialog', refresh: $refresh);
     }
 }

@@ -1,4 +1,4 @@
-<x-filament::page>
+<x-filament-panels::page>
 
     <div class="mx-auto w-full" wire:ignore>
         <details class="w-full bg-white open:bg-gray-200 duration-300">
@@ -40,11 +40,7 @@
                         handle: '.handle',
                         animation: 100,
                         onEnd: function (evt) {
-                            Livewire.emit('recordUpdated',
-                                +evt.clone.dataset.id, // id
-                                +evt.newIndex, // newIndex
-                                +evt.to.dataset.status, // newStatus
-                            );
+                            Livewire.dispatch('recordUpdated', {record: +evt.clone.dataset.id, newIndex: +evt.newIndex, newStatus: +evt.to.dataset.status});
                         },
                     })
                 @endforeach
@@ -52,4 +48,4 @@
         </script>
     @endpush
 
-</x-filament::page>
+</x-filament-panels::page>

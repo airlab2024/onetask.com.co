@@ -10,7 +10,7 @@ use Filament\Forms\Contracts\HasForms;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
-use Livewire\TemporaryUploadedFile;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class UploadFormFixture extends Component implements HasForms
 {

@@ -83,7 +83,7 @@ class OidcAuthController extends Controller
             }
             auth()->login($user);
             $request->session()->regenerate();
-            return redirect()->intended(route('filament.pages.dashboard'));
+            return redirect()->intended(route('filament.onetask.pages.dashboard'));
         } catch (IdentityProviderException $e) {
             return $this->loginError();
         }

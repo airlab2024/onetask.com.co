@@ -67,7 +67,7 @@ class LatestActivities extends BaseWidget
                             ' . e($state->project->name) . '
                         </span>
                         <span>
-                            <a href="' . route('filament.resources.tickets.share', $state->code)
+                            <a href="' . route('filament.onetask.resources.tickets.share', $state->code)
                         . '" target="_blank" class="text-primary-500 text-sm hover:underline">'
                         . e($state->code)
                         . '</a>

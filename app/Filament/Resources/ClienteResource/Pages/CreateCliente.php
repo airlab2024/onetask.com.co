@@ -3,15 +3,15 @@
 namespace App\Filament\Resources\ClienteResource\Pages;
 
 use App\Filament\Resources\ClienteResource;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateCliente extends CreateRecord
 {
     protected static string $resource = ClienteResource::class;
-    public static function canAccess(): bool
+    public static function canAccess(array $parameters = []): bool
     {
-        return auth()->user()?->can('Create cliente');
+        return static::getResource()::canCreate();
     }
 
 }

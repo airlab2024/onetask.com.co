@@ -128,7 +128,7 @@ class Task extends Model implements HasMedia
                 // Notificación de aplicación
                 \Filament\Notifications\Notification::make()
                     ->title('✏️ Tarea Actualizada')
-                    ->icon('heroicon-o-pencil-alt')
+                    ->icon('heroicon-o-pencil-square')
                     ->body("La tarea **{$task->task_short_code}** fue actualizada por **{$updatedBy}**.")
                     ->actions([
                         \Filament\Notifications\Actions\Action::make('Ver Tarea')
@@ -236,7 +236,7 @@ class Task extends Model implements HasMedia
         $fechaFin = \Carbon\Carbon::parse($this->cronograma_fin);
         $hoy = \Carbon\Carbon::today();
 
-        return $hoy->diffInDays($fechaFin, false);
+        return (int) $hoy->diffInDays($fechaFin, false);
     }
 
     public function scopeFilter($query, $filters)

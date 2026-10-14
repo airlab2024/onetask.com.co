@@ -23,7 +23,7 @@ class TimesheetExport extends Page implements HasForms
 
     protected static string $view = 'filament.pages.timesheet-export';
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return __('Timesheet');
     }
@@ -45,7 +45,7 @@ class TimesheetExport extends Page implements HasForms
                             ->reactive()
                             ->label('Star date'),
                         DatePicker::make('end_date')
-                            ->afterOrEqual(fn (\Closure $get) => $get('start_date'))
+                            ->afterOrEqual(fn (\Filament\Forms\Get $get) => $get('start_date'))
                             ->required()
                             ->reactive()
                             ->label('End date')

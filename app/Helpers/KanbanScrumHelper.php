@@ -173,7 +173,7 @@ trait KanbanScrumHelper
             $ticket->order = $newIndex;
             $ticket->status_id = $newStatus;
             $ticket->save();
-            Filament::notify('success', __('Ticket updated'));
+            \App\Support\UiNotification::send('success', __('Ticket updated'));
         }
     }
 
@@ -209,7 +209,7 @@ trait KanbanScrumHelper
     protected function kanbanHeading(): string|Htmlable
     {
         $heading = '<div class="w-full flex flex-col gap-1">';
-        $heading .= '<a href="' . route('filament.pages.board') . '"
+        $heading .= '<a href="' . route('filament.onetask.pages.board') . '"
                             class="text-primary-500 text-xs font-medium hover:underline">';
         $heading .= __('Back to board');
         $heading .= '</a>';
@@ -230,7 +230,7 @@ trait KanbanScrumHelper
     protected function scrumHeading(): string|Htmlable
     {
         $heading = '<div class="w-full flex flex-col gap-1">';
-        $heading .= '<a href="' . route('filament.pages.board') . '"
+        $heading .= '<a href="' . route('filament.onetask.pages.board') . '"
                             class="text-primary-500 text-xs font-medium hover:underline">';
         $heading .= __('Back to board');
         $heading .= '</a>';

@@ -66,7 +66,7 @@ class LatestComments extends BaseWidget
                             ' . e($state->project->name) . '
                         </span>
                         <span>
-                            <a href="' . route('filament.resources.tickets.share', $state->code)
+                            <a href="' . route('filament.onetask.resources.tickets.share', $state->code)
                         . '" target="_blank" class="text-primary-500 text-sm hover:underline">'
                         . e($state->code)
                         . '</a>
@@ -93,7 +93,7 @@ class LatestComments extends BaseWidget
             Tables\Actions\Action::make('view')
                 ->label(__('View'))
                 ->icon('heroicon-s-eye')
-                ->color('secondary')
+                ->color('gray')
                 ->modalHeading(__('Comment details'))
                 ->modalButton(__('View ticket'))
                 ->form([
@@ -104,7 +104,7 @@ class LatestComments extends BaseWidget
                 ])
                 ->action(
                     fn($record) =>
-                        redirect()->to(route('filament.resources.tickets.share', $record->ticket->code))
+                        redirect()->to(route('filament.onetask.resources.tickets.share', $record->ticket->code))
                 )
         ];
     }

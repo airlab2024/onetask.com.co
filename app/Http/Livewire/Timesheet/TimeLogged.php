@@ -12,8 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 
-class TimeLogged extends Component implements HasTable
+class TimeLogged extends Component implements HasTable, \Filament\Forms\Contracts\HasForms
 {
+    use \Filament\Forms\Concerns\InteractsWithForms;
     use InteractsWithTable;
 
     public Ticket $ticket;
@@ -25,6 +26,7 @@ class TimeLogged extends Component implements HasTable
 
     protected function getTableQuery(): Builder
     {
+        \Illuminate\Support\Facades\Gate::authorize('view', $this->ticket);
         return $this->ticket->hours()->getQuery();
     }
 

@@ -56,7 +56,7 @@ class Attachments extends Component implements HasForms, HasTable
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ])
-                ->getUploadedFileNameForStorageUsing(fn (\Livewire\TemporaryUploadedFile $file) =>
+                ->getUploadedFileNameForStorageUsing(fn (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file) =>
                     \Illuminate\Support\Str::uuid() . '.' . ($file->guessExtension() ?: 'bin'))
                 ->disablePreview()
         ];
@@ -67,8 +67,8 @@ class Attachments extends Component implements HasForms, HasTable
         \Illuminate\Support\Facades\Gate::authorize('update', $this->ticket);
         $this->form->getState();
         $this->form->fill();
-        $this->emit('filesUploaded');
-        Filament::notify('success', __('Ticket attachments saved'));
+        $this->dispatch('filesUploaded');
+        \App\Support\UiNotification::send('success', __('Ticket attachments saved'));
     }
 
     public function filesUploaded(): void
@@ -110,7 +110,7 @@ class Attachments extends Component implements HasForms, HasTable
                     \Illuminate\Support\Facades\Gate::authorize('update', $this->ticket);
                     abort_unless($this->ticket->media()->whereKey($record->id)->exists(), 404);
                     $record->delete();
-                    Filament::notify('success', __('Ticket attachment deleted'));
+                    \App\Support\UiNotification::send('success', __('Ticket attachment deleted'));
                 })
         ];
     }

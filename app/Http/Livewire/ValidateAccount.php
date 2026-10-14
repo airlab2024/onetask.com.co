@@ -15,10 +15,20 @@ class ValidateAccount extends Component implements HasForms
     use InteractsWithForms;
 
     public User $user;
+    public array $data = [];
+    #[\Livewire\Attributes\Locked]
+    public string $invitationToken;
 
     public function mount()
     {
+        abort_unless(filled($this->user->creation_token), 403);
+        $this->invitationToken = $this->user->creation_token;
         $this->form->fill();
+    }
+
+    public function form(\Filament\Forms\Form $form): \Filament\Forms\Form
+    {
+        return $form->schema($this->getFormSchema())->statePath('data');
     }
 
     public function render(): View
@@ -32,6 +42,8 @@ class ValidateAccount extends Component implements HasForms
             TextInput::make('password')
                 ->password()
                 ->required()
+                ->minLength(8)
+                ->maxLength(255)
                 ->confirmed()
                 ->label(__('Account password'))
                 ->placeholder(__('Choose your account password')),
@@ -47,12 +59,9 @@ class ValidateAccount extends Component implements HasForms
     public function validateAccount(): void
     {
         $data = $this->form->getState();
-        $this->user->creation_token = null;
-        $this->user->password = bcrypt($data['password']);
-        $this->user->email_verified_at = now();
-        $this->user->save();
+        $this->user = \App\Support\AccountActivation::activate($this->user->id, $this->invitationToken, $data['password']);
         auth()->login($this->user);
-        Filament::notify('success', __('Account verified'), true);
-        redirect()->to(route('filament.pages.dashboard'));
+        \App\Support\UiNotification::send('success', __('Account verified'), true);
+        $this->redirect(route('filament.onetask.pages.dashboard'));
     }
 }

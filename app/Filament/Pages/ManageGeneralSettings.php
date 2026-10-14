@@ -11,7 +11,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Pages\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Pages\SettingsPage;
 use Illuminate\Contracts\Support\Htmlable;
 
@@ -21,22 +21,32 @@ class ManageGeneralSettings extends SettingsPage
 
     protected static string $settings = GeneralSettings::class;
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->can('Manage general settings');
+        return static::canAccess();
     }
 
-    protected function getHeading(): string|Htmlable
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('Manage general settings') ?? false;
+    }
+
+    protected function beforeValidate(): void
+    {
+        abort_unless(static::canAccess(), 403);
+    }
+
+    public function getHeading(): string|Htmlable
     {
         return __('Manage general settings');
     }
 
-    protected static function getNavigationLabel(): string
+    public static function getNavigationLabel(): string
     {
         return __('General');
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return __('Settings');
     }
@@ -53,7 +63,6 @@ class ManageGeneralSettings extends SettingsPage
                                 ->helperText(__('This is the platform logo (e.g. Used in site favicon)'))
                                 ->image()
                                 ->columnSpan(1)
-                                ->preserveFilenames()
                                 ->maxSize(config('system.max_file_size')),
 
                             Grid::make(1)
@@ -98,7 +107,7 @@ class ManageGeneralSettings extends SettingsPage
         ];
     }
 
-    protected function getSaveFormAction(): Action
+    public function getSaveFormAction(): Action
     {
         return parent::getSaveFormAction()->label(__('Save'));
     }

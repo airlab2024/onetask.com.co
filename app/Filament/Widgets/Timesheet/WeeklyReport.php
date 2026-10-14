@@ -20,16 +20,16 @@ class WeeklyReport extends BarChartWidget
         'lg' => 3
     ];
 
-    public function __construct($id = null)
+    public function mount(): void
     {
         $weekDaysData = $this->getWeekStartAndFinishDays();
 
         $this->filter = $weekDaysData['weekStartDate'] . ' - ' . $weekDaysData['weekEndDate'];
 
-        parent::__construct($id);
+        parent::mount();
     }
 
-    protected function getHeading(): string
+    public function getHeading(): string
     {
         return __('Weekly logged time');
     }
@@ -88,7 +88,7 @@ class WeeklyReport extends BarChartWidget
         ])->validate();
         $start = Carbon::parse($params['weekStartDate'])->startOfDay();
         $end = Carbon::parse($params['weekEndDate'])->endOfDay();
-        abort_unless($start->diffInDays($end) <= 6, 422);
+        abort_unless($start->diffInDays($end->copy()->startOfDay()) <= 6, 422);
         return TicketHour::select([
             DB::raw("DATE_FORMAT(created_at,'%Y-%m-%d') as day"),
             DB::raw('SUM(value) as value'),

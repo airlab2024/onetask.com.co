@@ -2,6 +2,14 @@
 
 // config for DutchCodingCompany/FilamentSocialite
 return [
+    'middleware' => [
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\Session\Middleware\AuthenticateSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \App\Http\Middleware\ExternalLoginEnabled::class,
+    ],
     // Allow login, and registration if enabled, for users with an email for one of the following domains.
     // All domains allowed by default
     // Only use lower case

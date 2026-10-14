@@ -35,12 +35,12 @@ class RoadMap extends Page implements HasForms
         'updateEpic'
     ];
 
-    protected static function getNavigationLabel(): string
+    public static function getNavigationLabel(): string
     {
         return __('Road Map');
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return __('Management');
     }
@@ -88,7 +88,7 @@ class RoadMap extends Page implements HasForms
         $data = $this->form->getState();
         $project = $data['selectedProject'];
         $this->project = $this->projectQuery()->where('id', $project)->firstOrFail();
-        $this->dispatchBrowserEvent('projectChanged', [
+        $this->dispatch('projectChanged', ...[
             'url' => route('road-map.data', $this->project),
             'start_date' => Carbon::parse($this->project->epicsFirstDate)->subYear()->format('Y-m-d'),
             'end_date' => Carbon::parse($this->project->epicsLastDate)->addYear()->format('Y-m-d'),

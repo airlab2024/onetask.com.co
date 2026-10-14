@@ -3,8 +3,9 @@
 namespace Tests\Regression;
 
 use App\Models\User;
-use HtmlSanitizer\Sanitizer;
-use HtmlSanitizer\SanitizerInterface;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Illuminate\Auth\Access\Gate;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
@@ -47,6 +48,8 @@ abstract class IsolatedTestCase extends TestCase
             'livewire' => ['temporary_file_upload' => ['disk' => 'local', 'directory' => 'livewire-tmp']],
             'forms' => ['default_filesystem_disk' => 'task_files'],
             'filament' => ['auth' => ['guard' => 'web']],
+            'auth' => ['defaults' => ['guard' => 'web'], 'guards' => ['web' => ['driver' => 'session', 'provider' => 'users']], 'providers' => ['users' => ['driver' => 'eloquent', 'model' => User::class]]],
+            'hashing' => ['driver' => 'bcrypt', 'bcrypt' => ['rounds' => 4, 'verify' => true]],
         ]));
         $this->app->instance('request', Request::create('http://localhost'));
         $session = new \Illuminate\Session\Store('test', new \Illuminate\Session\ArraySessionHandler(120));
@@ -66,10 +69,13 @@ abstract class IsolatedTestCase extends TestCase
             \Illuminate\Routing\RoutingServiceProvider::class,
             \Illuminate\View\ViewServiceProvider::class,
             \Illuminate\Notifications\NotificationServiceProvider::class,
+            \Illuminate\Hashing\HashServiceProvider::class,
         ] as $provider) {
             $this->app->register($provider);
         }
-        $this->app->bind(SanitizerInterface::class, fn () => Sanitizer::create(require dirname(__DIR__, 2) . '/vendor/filament/support/config/html-sanitizer.php'));
+        $this->app->bind(HtmlSanitizerInterface::class, fn () => new HtmlSanitizer(
+            (new HtmlSanitizerConfig())->allowSafeElements()->allowRelativeLinks()->allowRelativeMedias()
+        ));
         $guard = Mockery::mock(Guard::class);
         $guard->shouldReceive('user')->andReturnUsing(fn () => $this->actor);
         $guard->shouldReceive('id')->andReturnUsing(fn () => $this->actor?->id);
@@ -84,6 +90,7 @@ abstract class IsolatedTestCase extends TestCase
         $gate->policy(\App\Models\Project::class, \App\Policies\ProjectPolicy::class);
         $this->app->instance(GateContract::class, $gate);
         $this->app->instance('filament', new \Filament\FilamentManager());
+        $this->app['filament']->setCurrentPanel(\Filament\Panel::make()->id('test')->authGuard('web'));
         $this->app->boot();
         $this->app['router']->get('/tasks/{task}', fn () => '')->name('tasks.show');
         $this->app['router']->get('/login', fn () => '')->name('login');
@@ -106,6 +113,12 @@ abstract class IsolatedTestCase extends TestCase
             $table->timestamps(); $table->softDeletes();
         });
         Schema::create('users', function ($table) { $table->id(); $table->string('name'); $table->softDeletes(); });
+        Schema::create('breezy_sessions', function ($table) {
+            $table->id(); $table->morphs('authenticatable');
+            $table->string('panel_id')->nullable(); $table->string('guard')->nullable();
+            $table->text('two_factor_secret')->nullable(); $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable(); $table->timestamps();
+        });
         Schema::create('roles', function ($table) { $table->id(); $table->string('name'); $table->string('guard_name'); });
         Schema::create('model_has_roles', function ($table) { $table->unsignedBigInteger('role_id'); $table->unsignedBigInteger('model_id'); $table->string('model_type'); });
     }

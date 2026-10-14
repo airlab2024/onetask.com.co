@@ -1,3 +1,3 @@
-<x-filament::layouts.base :title="__('Verify my account')">
+<x-filament-panels::layout.base :title="__('Verify my account')">
     @livewire('validate-account', ['user' => $user])
-</x-filament::layouts.base>
+</x-filament-panels::layout.base>

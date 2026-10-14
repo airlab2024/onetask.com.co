@@ -21,7 +21,7 @@ class ActivitiesReport extends BarChartWidget
 
     public ?string $filter = null;
 
-    protected function getHeading(): string
+    public function getHeading(): string
     {
         return __('Logged time by activity');
     }

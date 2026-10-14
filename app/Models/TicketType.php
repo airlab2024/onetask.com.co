@@ -19,4 +19,9 @@ class TicketType extends Model
     {
         return $this->hasMany(Ticket::class, 'type_id', 'id')->withTrashed();
     }
+
+    public function getIconAttribute(?string $icon): ?string
+    {
+        return \App\Support\LegacyIcons::name($icon);
+    }
 }

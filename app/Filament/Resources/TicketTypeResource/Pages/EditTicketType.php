@@ -4,14 +4,14 @@ namespace App\Filament\Resources\TicketTypeResource\Pages;
 
 use App\Filament\Resources\TicketTypeResource;
 use App\Models\TicketType;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditTicketType extends EditRecord
 {
     protected static string $resource = TicketTypeResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\ViewAction::make(),

@@ -2,13 +2,13 @@
 
 namespace App\Support;
 
-use HtmlSanitizer\SanitizerInterface;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 class SafeHtml
 {
     public static function sanitize(?string $html): string
     {
-        return app(SanitizerInterface::class)->sanitize($html ?? '');
+        return app(HtmlSanitizerInterface::class)->sanitize($html ?? '');
     }
 
     public static function color(?string $color): string

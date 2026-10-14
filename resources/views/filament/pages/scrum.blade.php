@@ -1,4 +1,4 @@
-<x-filament::page>
+<x-filament-panels::page>
 
     @if($project->currentSprint)
 
@@ -42,11 +42,7 @@
                         handle: '.handle',
                         animation: 100,
                         onEnd: function (evt) {
-                            Livewire.emit('recordUpdated',
-                                +evt.clone.dataset.id, // id
-                                +evt.newIndex, // newIndex
-                                +evt.to.dataset.status, // newStatus
-                            );
+                            Livewire.dispatch('recordUpdated', {record: +evt.clone.dataset.id, newIndex: +evt.newIndex, newStatus: +evt.to.dataset.status});
                         },
                     })
                     @endforeach
@@ -62,7 +58,7 @@
                 <span class="text-gray-500 text-sm">
                     {{ __("Click the below button to manage project's sprints") }}
                 </span>
-                <a href="{{ route('filament.resources.projects.view', $project) }}"
+                <a href="{{ route('filament.onetask.resources.projects.view', $project) }}"
                    class="px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded mt-3 w-fit">
                     {{ __('Manage sprints') }}
                 </a>
@@ -74,4 +70,4 @@
         </div>
     @endif
 
-</x-filament::page>
+</x-filament-panels::page>

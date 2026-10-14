@@ -4,14 +4,14 @@ namespace App\Filament\Resources\TicketPriorityResource\Pages;
 
 use App\Filament\Resources\TicketPriorityResource;
 use App\Models\TicketPriority;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditTicketPriority extends EditRecord
 {
     protected static string $resource = TicketPriorityResource::class;
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Actions\ViewAction::make(),

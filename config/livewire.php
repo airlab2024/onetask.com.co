@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'legacy_model_binding' => true,
+    'inject_assets' => true,
+    'inject_morph_markers' => true,
+    'pagination_theme' => 'tailwind',
 
     /*
     |--------------------------------------------------------------------------

@@ -6,9 +6,9 @@ use App\Filament\Resources\ClienteResource\Pages;
 use App\Models\Cliente;
 use Filament\Forms;
 use Filament\Tables;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class ClienteResource extends Resource

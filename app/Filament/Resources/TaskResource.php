@@ -5,9 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TaskResource\Pages;
 use App\Models\Task;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Filament\Forms\Components\Actions\Action as FormAction; // Para el suffixAction
 use Filament\Tables\Actions\Action as TableAction; // Para el action
@@ -40,7 +40,7 @@ use Illuminate\Database\Eloquent\Model; // Asegúrate de tener este importado
 class TaskResource extends Resource
 {
     protected static ?string $model = Task::class;
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static function recibidoPorOptions(): array
     {
         return [
@@ -288,7 +288,7 @@ class TaskResource extends Resource
                             ->displayFormat('Y-m-d'),
 
                         Forms\Components\DatePicker::make('cronograma_fin')
-                            ->afterOrEqual(fn (\Closure $get) => $get('cronograma_inicio'))
+                            ->afterOrEqual(fn (\Filament\Forms\Get $get) => $get('cronograma_inicio'))
                             ->label('FECHA FIN')
                             ->required()
                             ->displayFormat('Y-m-d'),
@@ -785,7 +785,7 @@ class TaskResource extends Resource
 
                 TableAction::make('manageImages')
                     ->label('F I')
-                    ->icon('heroicon-o-photograph')
+                    ->icon('heroicon-o-photo')
                     ->modalHeading('🖼️ Gestionar Fotos de Ingreso')
                     ->modalWidth('lg')
                     ->mountUsing(function (Forms\ComponentContainer $form, $record) {
@@ -866,7 +866,7 @@ class TaskResource extends Resource
                     ->visible(fn($record) => static::canEdit($record)),
                 TableAction::make('manageRemisionIngreso')
                     ->label('R I')
-                    ->icon('heroicon-o-cloud-upload')  // Puedes cambiar el ícono
+                    ->icon('heroicon-o-cloud-arrow-up')  // Puedes cambiar el ícono
                     ->modalHeading('📥 Gestionar Remisión de Ingreso')
                     ->modalWidth('lg')
                     ->mountUsing(function (Forms\ComponentContainer $form, $record) {
@@ -908,7 +908,7 @@ class TaskResource extends Resource
                     ->visible(fn($record) => static::canEdit($record)),
                 TableAction::make('manageRemisionSalida')
                     ->label('R S')
-                    ->icon('heroicon-o-cloud-download') // Puedes cambiar el ícono
+                    ->icon('heroicon-o-cloud-arrow-down') // Puedes cambiar el ícono
                     ->modalHeading('📤 Gestionar Remisión de Salida')
                     ->modalWidth('lg')
                     ->mountUsing(function (Forms\ComponentContainer $form, $record) {

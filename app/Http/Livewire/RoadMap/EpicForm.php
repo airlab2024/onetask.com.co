@@ -65,7 +65,7 @@ class EpicForm extends Component implements HasForms
                         ->required(),
 
                     DatePicker::make('ends_at')
-                        ->afterOrEqual(fn (\Closure $get) => $get('starts_at'))
+                        ->afterOrEqual(fn (\Filament\Forms\Get $get) => $get('starts_at'))
                         ->label(__('Ends at'))
                         ->required(),
                 ]),
@@ -85,13 +85,13 @@ class EpicForm extends Component implements HasForms
         $this->epic->starts_at = $data['starts_at'];
         $this->epic->ends_at = $data['ends_at'];
         $this->epic->save();
-        Filament::notify('success', __('Epic successfully saved'));
+        \App\Support\UiNotification::send('success', __('Epic successfully saved'));
         $this->cancel(true);
     }
 
     public function cancel($refresh = false): void
     {
-        $this->emit('closeEpicDialog', $refresh);
+        $this->dispatch('closeEpicDialog', refresh: $refresh);
     }
 
     public function delete(): void
@@ -102,6 +102,6 @@ class EpicForm extends Component implements HasForms
             $ticket->save();
         });
         $this->epic->delete();
-        $this->emit('closeEpicDialog', true);
+        $this->dispatch('closeEpicDialog', refresh: true);
     }
 }

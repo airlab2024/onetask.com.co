@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\UserCreatedNotification;
-use Devaslanphp\FilamentAvatar\Core\HasAvatarUrl;
+use App\Support\HasAvatarUrl;
 use DutchCodingCompany\FilamentSocialite\Models\SocialiteUser;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -14,14 +14,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use JeffGreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
+use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use ProtoneMedia\LaravelVerifyNewEmail\MustVerifyNewEmail;
 use Ramsey\Uuid\Uuid;
 use Spatie\Permission\Traits\HasRoles;
 
 
-class User extends Authenticatable implements MustVerifyEmail, FilamentUser
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser, \Filament\Models\Contracts\HasAvatar
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable,
         HasRoles, HasAvatarUrl, SoftDeletes, MustVerifyNewEmail;
@@ -50,6 +50,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+        'creation_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'breezySessions',
     ];
 
     /**
@@ -123,9 +127,14 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         );
     }
 
-    public function canAccessFilament(): bool
+    public function canAccessPanel(\Filament\Panel $panel): bool
     {
         return true;
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url;
     }
     public function tasks()
     {
@@ -134,6 +143,16 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     public function unreadNotifications()
     {
         return $this->notifications()->whereNull('read_at');
+    }
+
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(DatabaseNotification::class, 'notifiable')->latest();
+    }
+
+    public static function bootTwoFactorAuthenticatable(): void
+    {
+        static::forceDeleted(fn ($user) => $user->breezySessions()->delete());
     }
 
 }
