@@ -38,7 +38,7 @@ class OnetaskPanelProvider extends PanelProvider
             ->colors(['primary' => Color::Blue])->maxContentWidth('full')->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([\Filament\Pages\Dashboard::class])
+            ->pages([\App\Filament\Pages\Dashboard::class])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->databaseNotifications()->databaseNotificationsPolling('30s')->viteTheme('resources/css/filament.scss')
             ->plugins([
