@@ -52,6 +52,9 @@ class Attachments extends Component implements HasForms, HasTable
     {
         return [
             SpatieMediaLibraryFileUpload::make('attachments')
+                ->disk('task_files')
+                ->mediaName(fn (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file) =>
+                    mb_substr(preg_replace('/[\x00-\x1f\x7f]/', '_', basename(str_replace('\\', '/', $file->getClientOriginalName()))), 0, 255))
                 ->label(__('Attachments'))
                 ->helperText(__('Here you can attach all files needed for this ticket'))
                 ->multiple()
@@ -66,6 +69,11 @@ class Attachments extends Component implements HasForms, HasTable
                 ->getUploadedFileNameForStorageUsing(fn (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file) =>
                     \Illuminate\Support\Str::uuid() . '.' . ($file->guessExtension() ?: 'bin'))
                 ->disablePreview()
+                ->getUploadedFileUsing(function ($component, string $file): ?array {
+                    $media = $this->ticket->media()->where('uuid', $file)->first();
+                    return $media ? ['name' => $media->name, 'size' => $media->size, 'type' => $media->mime_type,
+                        'url' => route('tickets.attachments', ['ticket' => $this->ticket, 'media' => $media])] : null;
+                })
         ];
     }
 
@@ -112,7 +120,13 @@ class Attachments extends Component implements HasForms, HasTable
     protected function getTableActions(): array
     {
         return [
+            \Filament\Tables\Actions\Action::make('download')
+                ->label(__('Download'))
+                ->icon('heroicon-o-arrow-down-tray')
+                ->url(fn ($record) => route('tickets.attachments', ['ticket' => $this->ticket, 'media' => $record]))
+                ->openUrlInNewTab(),
             DeleteAction::make()
+                ->visible(fn () => \Illuminate\Support\Facades\Gate::allows('update', $this->ticket))
                 ->action(function ($record) {
                     \Illuminate\Support\Facades\Gate::authorize('update', $this->ticket);
                     abort_unless($this->ticket->media()->whereKey($record->id)->exists(), 404);

@@ -46,3 +46,6 @@ Route::get('/tasks/{task}', function (Task $task) {
 // Downloads always belong to an authorized task; no user-supplied filesystem routes.
 Route::get('/tasks/{task}/files/{field}', [\App\Http\Controllers\TaskFileController::class, 'show'])
     ->middleware(['auth', \Filament\Http\Middleware\SetUpPanel::class . ':onetask', 'verified', \Jeffgreco13\FilamentBreezy\Middleware\MustTwoFactor::class])->name('tasks.files');
+
+Route::get('/tickets/{ticket}/attachments/{media}', [\App\Http\Controllers\TicketAttachmentController::class, 'show'])
+    ->middleware(['auth', \Filament\Http\Middleware\SetUpPanel::class . ':onetask', 'verified', \Jeffgreco13\FilamentBreezy\Middleware\MustTwoFactor::class])->name('tickets.attachments');
