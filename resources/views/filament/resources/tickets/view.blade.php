@@ -351,7 +351,7 @@
                 console.error('Unable to copy to clipboard', err);
             }
             document.body.removeChild(textArea);
-            new Notification()
+            new FilamentNotification()
                 .success()
                 .title('{{ __('Url copied to clipboard') }}')
                 .duration(6000)
