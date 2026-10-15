@@ -8,6 +8,22 @@ use Tests\TestCase;
 
 class PanelCompatibilityTest extends TestCase
 {
+    public function test_login_loads_javascript_from_the_installed_livewire_version(): void
+    {
+        $this->assertFileDoesNotExist(public_path('vendor/livewire/manifest.json'),
+            'Published Livewire assets can retain a manifest from an incompatible major version.');
+        $html = $this->get('/login')->assertOk()->getContent();
+        $this->assertSame(1, preg_match('~<script[^>]+src="([^"]+)"[^>]+data-update-uri="([^"]+)"~s', $html, $match));
+        $script = html_entity_decode($match[1]);
+        $this->assertStringNotContainsString('/vendor/livewire/', $script);
+        $path = parse_url($script, PHP_URL_PATH);
+        $response = $this->get($path.'?'.parse_url($script, PHP_URL_QUERY))->assertOk();
+        $this->assertStringContainsString('javascript', $response->headers->get('Content-Type'));
+        $expected = base_path('vendor/livewire/livewire/dist/'.basename($path));
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $response->baseResponse);
+        $this->assertSame(realpath($expected), $response->baseResponse->getFile()->getRealPath());
+    }
+
     public function test_unconfigured_external_login_returns_404(): void
     {
         config(['services.oidc.is_enabled' => true, 'services.oidc.client_id' => null,
