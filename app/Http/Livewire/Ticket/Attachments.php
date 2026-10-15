@@ -19,6 +19,13 @@ class Attachments extends Component implements HasForms, HasTable
 {
     use InteractsWithForms, InteractsWithTable;
 
+    public array $data = [];
+
+    protected function getFormStatePath(): ?string
+    {
+        return 'data';
+    }
+
     public Ticket $ticket;
 
     protected $listeners = [

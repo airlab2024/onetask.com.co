@@ -15,6 +15,13 @@ class RoadMap extends Page implements HasForms
 {
     use InteractsWithForms;
 
+    public array $data = [];
+
+    protected function getFormStatePath(): ?string
+    {
+        return 'data';
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
     protected static string $view = 'filament.pages.road-map';

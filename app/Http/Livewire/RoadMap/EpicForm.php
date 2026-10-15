@@ -18,11 +18,19 @@ class EpicForm extends Component implements HasForms
 {
     use InteractsWithForms;
 
+    public array $data = [];
+
+    protected function getFormStatePath(): ?string
+    {
+        return 'data';
+    }
+
     public Epic $epic;
     public array $epics = [];
 
     public function mount()
     {
+        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->epic->project_id));
         $query = Epic::query();
         $query->where('project_id', $this->epic->project_id);
         if ($this->epic->id) {
@@ -44,7 +52,7 @@ class EpicForm extends Component implements HasForms
                 ->schema([
                     Select::make('project_id')
                         ->label(__('Project'))
-                        ->disabled()
+                        ->disabled()->dehydrated()
                         ->options(Project::all()->pluck('name', 'id')),
 
                     Select::make('parent_id')

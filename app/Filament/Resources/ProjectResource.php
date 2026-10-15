@@ -147,7 +147,7 @@ class ProjectResource extends Resource
                 Tables\Columns\TextColumn::make('cover')
                     ->label(__('Cover image'))
                     ->formatStateUsing(fn($state) => new HtmlString('
-                            <div style=\'background-image: url("' . $state . '")\'
+                            <div style=\'background-image: url("' . e($state) . '")\'
                                  class="w-8 h-8 bg-cover bg-center bg-no-repeat"></div>
                         ')),
 
@@ -166,8 +166,8 @@ class ProjectResource extends Resource
                     ->formatStateUsing(fn($record) => new HtmlString('
                             <div class="flex items-center gap-2">
                                 <span class="filament-tables-color-column relative flex h-6 w-6 rounded-md"
-                                    style="background-color: ' . $record->status->color . '"></span>
-                                <span>' . $record->status->name . '</span>
+                                    style="background-color: ' . \App\Support\SafeHtml::color($record->status?->color) . '"></span>
+                                <span>' . e($record->status?->name) . '</span>
                             </div>
                         '))
                     ->sortable()

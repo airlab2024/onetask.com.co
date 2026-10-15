@@ -17,6 +17,13 @@ class TimesheetExport extends Page implements HasForms
 {
     use InteractsWithForms;
 
+    public array $data = [];
+
+    protected function getFormStatePath(): ?string
+    {
+        return 'data';
+    }
+
     protected static ?string $slug = 'timesheet-export';
 
     protected static ?int $navigationSort = 2;

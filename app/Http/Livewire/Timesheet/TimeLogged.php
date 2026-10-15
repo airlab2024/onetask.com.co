@@ -19,6 +19,11 @@ class TimeLogged extends Component implements HasTable, \Filament\Forms\Contract
 
     public Ticket $ticket;
 
+    public function render()
+    {
+        return view('livewire.timesheet.time-logged');
+    }
+
     protected function getFormModel(): Model|string|null
     {
         return $this->ticket;

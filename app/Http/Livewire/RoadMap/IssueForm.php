@@ -19,6 +19,13 @@ class IssueForm extends Component implements HasForms
 {
     use InteractsWithForms;
 
+    public array $data = [];
+
+    protected function getFormStatePath(): ?string
+    {
+        return 'data';
+    }
+
     public Project|null $project = null;
     public array $epics;
     public array $sprints;
@@ -73,7 +80,7 @@ class IssueForm extends Component implements HasForms
                                 ->label(__('Project'))
                                 ->searchable()
                                 ->reactive()
-                                ->disabled($this->project != null)
+                                ->disabled($this->project != null)->dehydrated()
                                 ->columnSpan(2)
                                 ->options(fn() => Project::where('owner_id', auth()->user()->id)
                                     ->orWhereHas('users', function ($query) {
@@ -165,6 +172,7 @@ class IssueForm extends Component implements HasForms
                 ->schema([
                     Forms\Components\TextInput::make('estimation')
                         ->label(__('Estimation time'))
+                        ->minValue(0)
                         ->numeric()
                         ->columnSpan(4),
                 ]),
