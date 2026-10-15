@@ -26,11 +26,14 @@ class EpicForm extends Component implements HasForms
     }
 
     public Epic $epic;
+    #[\Livewire\Attributes\Locked]
+    public int $projectId = 0;
     public array $epics = [];
 
     public function mount()
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->epic->project_id));
+        $this->projectId = (int) $this->epic->project_id;
+        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->projectId));
         $query = Epic::query();
         $query->where('project_id', $this->epic->project_id);
         if ($this->epic->id) {
@@ -82,12 +85,13 @@ class EpicForm extends Component implements HasForms
 
     public function submit(): void
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->epic->project_id));
+        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->projectId));
         $data = $this->form->getState();
-        abort_unless((int) $data['project_id'] === (int) $this->epic->project_id, 422);
+        abort_unless((int) $data['project_id'] === $this->projectId, 422);
         if (!empty($data['parent_id'])) {
-            abort_unless(Epic::where('project_id', $this->epic->project_id)->where('id', '<>', $this->epic->id ?? 0)->whereKey($data['parent_id'])->exists(), 422);
+            abort_unless(Epic::where('project_id', $this->projectId)->where('id', '<>', $this->epic->id ?? 0)->whereKey($data['parent_id'])->exists(), 422);
         }
+        $this->epic->project_id = $this->projectId;
         $this->epic->parent_id = $data['parent_id'];
         $this->epic->name = $data['name'];
         $this->epic->starts_at = $data['starts_at'];
@@ -104,7 +108,8 @@ class EpicForm extends Component implements HasForms
 
     public function delete(): void
     {
-        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->epic->project_id));
+        \Illuminate\Support\Facades\Gate::authorize('update', Project::findOrFail($this->projectId));
+        abort_unless($this->epic->exists, 404);
         $this->epic->tickets->each(function (Ticket $ticket) {
             $ticket->epic_id = null;
             $ticket->save();
