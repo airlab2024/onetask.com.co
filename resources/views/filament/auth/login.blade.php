@@ -12,7 +12,7 @@
             <x-filament-panels::form.actions :actions="$this->getCachedFormActions()" :full-width="$this->hasFullWidthFormActions()" />
         </x-filament-panels::form>
     @endif
-    @if (config('services.oidc.is_enabled'))
+    @if (\App\Support\ExternalLoginConfiguration::oidc())
         <x-filament::button tag="a" :href="route('oidc.redirect')" icon="heroicon-o-arrow-right-on-rectangle">
             {{ __('OIDC Connect') }}
         </x-filament::button>

@@ -12,11 +12,9 @@ use League\OAuth2\Client\Provider\GenericProvider;
 
 class OidcAuthController extends Controller
 {
-    private $client;
-
-    public function __construct()
+    private function client(): GenericProvider
     {
-        $this->client = new GenericProvider([
+        return new GenericProvider([
             'clientId' => config('services.oidc.client_id'),
             'clientSecret' => config('services.oidc.client_secret'),
             'redirectUri' => config('services.oidc.redirect_uri'),
@@ -29,22 +27,24 @@ class OidcAuthController extends Controller
 
     public function redirect()
     {
-        abort_unless(config('services.oidc.is_enabled'), 404);
-        $authUrl = $this->client->getAuthorizationUrl();
-        session()->put('oidc_state', $this->client->getState());
+        abort_unless(\App\Support\ExternalLoginConfiguration::oidc(), 404);
+        $client = $this->client();
+        $authUrl = $client->getAuthorizationUrl();
+        session()->put('oidc_state', $client->getState());
         return redirect($authUrl);
     }
 
     public function callback(Request $request)
     {
-        abort_unless(config('services.oidc.is_enabled'), 404);
+        abort_unless(\App\Support\ExternalLoginConfiguration::oidc(), 404);
         $expected = $request->session()->pull('oidc_state');
         $state = $request->input('state');
         abort_unless(is_string($expected) && $expected !== '' && is_string($state) && hash_equals($expected, $state), 403);
         abort_unless(is_string($request->input('code')) && $request->input('code') !== '', 400);
         try {
-            $accessToken = $this->client->getAccessToken('authorization_code', ['code' => $request->input('code')]);
-            $data = $this->client->getResourceOwner($accessToken)->toArray();
+            $client = $this->client();
+            $accessToken = $client->getAccessToken('authorization_code', ['code' => $request->input('code')]);
+            $data = $client->getResourceOwner($accessToken)->toArray();
             $subject = $data['sub'] ?? null;
             $email = $data['email'] ?? null;
             if (!is_string($subject) || $subject === '' || strlen($subject) > 255

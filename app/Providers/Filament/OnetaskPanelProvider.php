@@ -28,7 +28,7 @@ class OnetaskPanelProvider extends PanelProvider
             ->registration(fn () => (bool) config('filament-socialite.registration'))
             ->providers(collect(config('filament-socialite.providers', []))
                 ->map(fn ($options, $name) => Provider::make($name)->label($options['label'])->icon($options['icon'])
-                    ->hidden(fn () => !config('filament-socialite.enabled')))->values()->all());
+                    ->hidden(fn () => !\App\Support\ExternalLoginConfiguration::social($name)))->values()->all());
 
         return $panel->default()->id('onetask')->path('')
             ->login(Login::class)->passwordReset()->emailVerification()

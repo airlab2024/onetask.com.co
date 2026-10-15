@@ -10,7 +10,8 @@ class ExternalLoginEnabled
     public function handle(Request $request, Closure $next)
     {
         if ($request->is('oauth/*', 'onetask/oauth/*')) {
-            abort_unless(config('filament-socialite.enabled'), 404);
+            $provider = $request->route('provider');
+            abort_unless(is_string($provider) && \App\Support\ExternalLoginConfiguration::social($provider), 404);
         }
         return $next($request);
     }
