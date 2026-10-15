@@ -32,7 +32,7 @@ class OnetaskPanelProvider extends PanelProvider
 
         return $panel->default()->id('onetask')->path('')
             ->login(Login::class)->passwordReset()->emailVerification()
-            ->registration(fn () => config('filament-breezy.enable_registration') ? \Filament\Pages\Auth\Register::class : null)
+            ->registration(config('filament-breezy.enable_registration') ? \Filament\Pages\Auth\Register::class : null)
             ->authGuard('web')->brandName(fn () => config('app.name'))->font('DM Sans')
             ->brandLogo(fn () => config('app.logo'))->favicon(fn () => config('app.logo'))
             ->colors(['primary' => Color::Blue])->maxContentWidth('full')->sidebarCollapsibleOnDesktop()
