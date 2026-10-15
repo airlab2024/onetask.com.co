@@ -553,8 +553,8 @@ class TaskResource extends Resource
                     ->sortable()
                     ->alignCenter() // Agregado para centrar encabezado y contenido
                     ->extraAttributes([
-                        'class' => 'w-full border rounded-md p-1.5 bg-white text-gray-2000 text-center text-sm',
-                        'style' => 'min-height: 100%; height: 100%; min-width: 150px; border-color: #d1d5db;', // Ajusta aquí el ancho
+                        'class' => 'w-full rounded-md p-1.5 text-center text-sm',
+                        'style' => 'min-width: 220px;',
                     ]),
                 Tables\Columns\TextInputColumn::make('cronograma_inicio')
                     ->disabled(fn($record) => !static::canEdit($record))
