@@ -35,6 +35,7 @@ class OnetaskPanelProvider extends PanelProvider
             ->registration(config('filament-breezy.enable_registration') ? \App\Filament\Auth\Register::class : null)
             ->authGuard('web')->brandName(fn () => config('app.name'))->font('DM Sans')
             ->brandLogo(fn () => asset('images/brand/zero-span-logo.png'))->favicon(fn () => config('app.logo'))
+            ->brandLogoHeight('2.5rem')
             ->renderHook(\Filament\View\PanelsRenderHook::BODY_START, fn () => view('filament.components.brand-background'))
             ->colors(['primary' => Color::Blue])->maxContentWidth('full')->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

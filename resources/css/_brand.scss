@@ -110,11 +110,39 @@
     background: #f8fafc;
 }
 
+.dark .fi-panel-onetask .fi-sidebar-header .fi-logo,
+.dark .fi-panel-onetask .fi-topbar .fi-logo {
+    padding: .2rem .4rem;
+    border-radius: .5rem;
+    background: #f8fafc;
+}
+
 @media (max-width: 640px) {
     .fi-panel-onetask .fi-simple-main-ctn { padding: 1rem; }
     .fi-panel-onetask .fi-simple-main { padding: 1.75rem 1.5rem; border-radius: 1.4rem; }
     .fi-panel-onetask .fi-simple-header .fi-logo { height: 8.5rem !important; }
     .fi-panel-onetask:has(.fi-simple-layout) .zero-brand-art { opacity: .5; }
+    .zero-brand-backdrop::before,
+    .zero-brand-backdrop::after {
+        content: '';
+        position: absolute;
+        width: 13rem;
+        height: 13rem;
+        opacity: .24;
+    }
+    .zero-brand-backdrop::before {
+        top: -6rem;
+        left: -5rem;
+        border: 1.8rem solid #2466ad;
+        border-radius: 50%;
+    }
+    .zero-brand-backdrop::after {
+        right: -5rem;
+        bottom: -4rem;
+        border: 1.3rem solid #ed4b13;
+        border-radius: 1.75rem;
+        transform: rotate(25deg);
+    }
 }
 
 @media (max-height: 740px) and (min-width: 641px) {
