@@ -8,6 +8,26 @@ use Tests\TestCase;
 
 class PanelCompatibilityTest extends TestCase
 {
+    public function test_unconfigured_external_login_returns_404(): void
+    {
+        config(['services.oidc.is_enabled' => true, 'services.oidc.client_id' => null,
+            'services.oidc.client_secret' => null, 'filament-socialite.enabled' => true,
+            'services.google.client_id' => null, 'services.google.client_secret' => null]);
+        $this->get('/oidc/redirect')->assertNotFound();
+        $this->get('/onetask/oauth/google')->assertNotFound();
+    }
+
+    public function test_registration_action_rechecks_disabled_setting(): void
+    {
+        config(['filament-breezy.enable_registration' => false]);
+        try {
+            (new \App\Filament\Auth\Register())->register();
+            $this->fail('Disabled registration accepted a stale component action.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+    }
+
     public function test_disabled_registration_has_no_registration_action(): void
     {
         config(['filament-breezy.enable_registration' => false]);
